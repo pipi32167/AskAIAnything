@@ -35,6 +35,12 @@ class SimpleMarkdown {
         replacement: '<code>$1</code>'
       },
 
+      // 水平分隔线 (---)
+      horizontalRule: {
+        pattern: /^[\s]*[-*_]{3,}[\s]*$/gm,
+        replacement: '<hr>'
+      },
+
       // 链接 ([text](url))
       link: {
         pattern: /\[([^\]]+)\]\(([^)]+)\)/g,
@@ -111,20 +117,20 @@ class SimpleMarkdown {
 
       // 段落 (空行分隔)
       paragraph: {
-        pattern: /^(?!<[h|u|o]|<p)(.+)$/gm,
+        pattern: /^(?!<[h|u|o]|<p|<hr)(.+)$/gm,
         replacement: '<p>$1</p>',
         process: (text) => {
           return text.split('\n\n')
             .filter(line => line.trim() && !/^<[^>]+>/.test(line.trim()))
             .map(line => line.trim() ? `<p>${line.trim()}</p>` : '')
-            .join('\n\n');
+            .join('\n');
         }
       },
 
       // 换行 (单个换行符)
       lineBreak: {
         pattern: /\n/g,
-        replacement: '<br>'
+        replacement: ''
       }
     };
   }
@@ -136,6 +142,9 @@ class SimpleMarkdown {
 
     // 处理代码块（优先处理，避免被其他规则干扰）
     html = html.replace(this.rules.codeBlock.pattern, this.rules.codeBlock.replacement);
+
+    // 处理水平分隔线
+    html = html.replace(this.rules.horizontalRule.pattern, this.rules.horizontalRule.replacement);
 
     // 处理标题
     html = html.replace(this.rules.headers.pattern, this.rules.headers.replacement);
@@ -169,17 +178,17 @@ class SimpleMarkdown {
       }
     }
 
-    html = processedLines.join('\n\n');
+    html = processedLines.join('\n');
 
     // 处理换行
-    html = html.replace(/\n/g, '<br>');
+    html = html.replace(/\n/g, '');
 
     // 清理多余的段落标签
     html = html.replace(/<p><\/p>/g, '');
     html = html.replace(/<p>(<h[1-6]>)/g, '$1');
     html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
-    html = html.replace(/<p>(<ul>|<ol>|<pre>)/g, '$1');
-    html = html.replace(/(<\/ul>|<\/ol>|<\/pre>)<\/p>/g, '$1');
+    html = html.replace(/<p>(<ul>|<ol>|<pre>|<hr>)/g, '$1');
+    html = html.replace(/(<\/ul>|<\/ol>|<\/pre>|<hr>)<\/p>/g, '$1');
 
     return html;
   }
@@ -196,7 +205,8 @@ class SimpleMarkdown {
       /`[^`]+`/, // 内联代码
       /\[.*?\]\(.*?\)/, // 链接
       /^[\s]*[-*]\s+/m, // 无序列表
-      /^[\s]*\d+\.\s+/m // 有序列表
+      /^[\s]*\d+\.\s+/m, // 有序列表
+      /^[\s]*[-*_]{3,}[\s]*$/m // 水平分隔线
     ];
 
     return markdownPatterns.some(pattern => pattern.test(text));

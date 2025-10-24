@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Test</title>
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+    <div class="sidebar-content">
+        <div class="current-explanation">
+            <div class="explanation-label">测试 Markdown 格式</div>
+            <div class="explanation-content markdown-content" id="test-content">
+            </div>
+        </div>
+    </div>
+
+    <script src="markdown.js"></script>
+    <script>
+        // 测试用的Markdown文本
+        const testMarkdown = `# 5. 总结与展望
+
+## 迁移成果
+团队完成了从 HTTP 轮询到 AWS IoT Core MQTT 架构的升级，解决了原有痛点。
+
+## 后续挑战
+量产设备预配、消息成本优化、复杂规则引擎设计、与现有业务系统深度集成等。
+
+---
+
+## 下一步
+后续将分享生产环境中的成本优化和更多实践经验。
+
+### 技术要点
+- **性能优化**：减少连接开销
+- **安全加固**：完善认证机制
+- **监控告警**：实时状态跟踪
+
+---
+
+整体评价：本文详细介绍了物联网项目从 HTTP 轮询迁移到基于 AWS IoT Core 的 MQTT 架构的全过程。`;
+
+        // 解析并显示
+        const parsed = markdownParser.parse(testMarkdown);
+        document.getElementById('test-content').innerHTML = parsed;
+    </script>
+</body>
+</html>

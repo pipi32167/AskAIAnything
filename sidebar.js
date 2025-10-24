@@ -413,11 +413,15 @@ function renderHistory() {
     content.innerHTML = `
       <div class="history-timestamp">${item.timestamp}</div>
       ${urlDisplay}
-      <div class="history-text" title="${item.text}"><strong>文字：</strong>${item.text}</div>
+      <div class="history-text" title="${item.text}"><strong>文字：</strong>${
+      item.text
+    }</div>
       <div class="history-explanation"><strong>解释：</strong>${explanationHTML}</div>
       <div class="history-actions">
         <button class="view-in-main-btn" data-index="${index}">📌 在主区域查看</button>
-        <button class="copy-markdown-btn" data-index="${index}">📋 ${i18nInstance.t("sidebar.copyMarkdown")}</button>
+        <button class="copy-markdown-btn" data-index="${index}">📋 ${i18nInstance.t(
+      "sidebar.copyMarkdown"
+    )}</button>
       </div>
     `;
 
@@ -506,52 +510,55 @@ function clearAllHistory() {
 // 复制历史记录为 Markdown 格式
 function copyHistoryAsMarkdown(item) {
   // 构建 Markdown 格式的文本
-  let markdownText = `# ${item.promptName || '文字解释'}\n\n`;
-  
+  let markdownText = `# ${item.promptName || "文字解释"}\n\n`;
+
   // 添加时间戳
   markdownText += `**时间：** ${item.timestamp}\n\n`;
-  
+
   // 添加来源信息
   if (item.pageUrl && item.pageTitle) {
     markdownText += `**来源：** [${item.pageTitle}](${item.pageUrl})\n\n`;
   } else if (item.pageUrl) {
     markdownText += `**来源：** <${item.pageUrl}>\n\n`;
   }
-  
+
   // 添加选中的文字
   markdownText += `## 选中文字\n\n`;
   // 如果文字包含特殊字符，需要转义或用代码块包围
-  if (item.text.includes('\n') || item.text.includes('`')) {
+  if (item.text.includes("\n") || item.text.includes("`")) {
     markdownText += `\`\`\`\n${item.text}\n\`\`\`\n\n`;
   } else {
     markdownText += `${item.text}\n\n`;
   }
-  
+
   // 添加AI解释
   markdownText += `## AI 解释\n\n${item.explanation}\n\n`;
-  
+
   // 添加分隔线
   markdownText += `---\n\n*导出时间：${new Date().toLocaleString("zh-CN")}*`;
-  
+
   // 使用 Clipboard API 复制到剪贴板
-  navigator.clipboard.writeText(markdownText).then(() => {
-    // 显示复制成功的提示
-    showCopySuccessMessage();
-  }).catch((err) => {
-    console.error('复制失败:', err);
-    // 降级到传统的复制方法
-    fallbackCopyToClipboard(markdownText);
-  });
+  navigator.clipboard
+    .writeText(markdownText)
+    .then(() => {
+      // 显示复制成功的提示
+      showCopySuccessMessage();
+    })
+    .catch((err) => {
+      console.error("复制失败:", err);
+      // 降级到传统的复制方法
+      fallbackCopyToClipboard(markdownText);
+    });
 }
 
 // 显示复制成功的消息
 function showCopySuccessMessage() {
   // 创建一个临时的提示元素
-  const message = document.createElement('div');
-  message.className = 'copy-success-message';
-  message.textContent = '✅ ' + i18nInstance.t("sidebar.copySuccess");
+  const message = document.createElement("div");
+  message.className = "copy-success-message";
+  message.textContent = "✅ " + i18nInstance.t("sidebar.copySuccess");
   document.body.appendChild(message);
-  
+
   // 3秒后移除提示
   setTimeout(() => {
     if (message.parentNode) {
@@ -562,23 +569,23 @@ function showCopySuccessMessage() {
 
 // 降级复制方法（兼容旧浏览器）
 function fallbackCopyToClipboard(text) {
-  const textArea = document.createElement('textarea');
+  const textArea = document.createElement("textarea");
   textArea.value = text;
-  textArea.style.position = 'fixed';
-  textArea.style.left = '-999999px';
-  textArea.style.top = '-999999px';
+  textArea.style.position = "fixed";
+  textArea.style.left = "-999999px";
+  textArea.style.top = "-999999px";
   document.body.appendChild(textArea);
   textArea.focus();
   textArea.select();
-  
+
   try {
-    document.execCommand('copy');
+    document.execCommand("copy");
     showCopySuccessMessage();
   } catch (err) {
-    console.error('复制失败:', err);
+    console.error("复制失败:", err);
     alert(i18nInstance.t("sidebar.copyFailed"));
   }
-  
+
   document.body.removeChild(textArea);
 }
 

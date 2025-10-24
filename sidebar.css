@@ -568,7 +568,7 @@ body {
 .markdown-content h6 { font-size: 0.9em; color: #5DADE2; }
 
 .markdown-content p {
-  margin: 8px 0;
+  margin: 4px 0;
   line-height: 1.6;
 }
 
@@ -654,6 +654,13 @@ body {
   margin: 12px 0;
   color: #5D6D7E;
   font-style: italic;
+}
+
+.markdown-content hr {
+  border: none;
+  border-top: 1px solid #D6EAF8;
+  margin: 16px 0;
+  background: none;
 }
 
 /* 纯文本样式 */
