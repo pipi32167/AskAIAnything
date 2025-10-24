@@ -57,14 +57,27 @@ async function handleExplainRequest(text) {
     // 你需要替换成你自己的API密钥和端点
     const explanation = await callAI(text);
 
-    // 显示解释
-    document.getElementById('currentExplanation').textContent = explanation;
+    // 显示解释 - 支持Markdown渲染
+    displayExplanation(explanation);
 
     // 保存到历史记录
     addToHistory(text, explanation);
   } catch (error) {
     document.getElementById('currentExplanation').innerHTML =
       `<div class="error">${i18nInstance.t('sidebar.error')} ${error.message}</div>`;
+  }
+}
+
+// 显示解释内容（支持Markdown）
+function displayExplanation(text) {
+  const explanationDiv = document.getElementById('currentExplanation');
+
+  if (markdownParser.hasMarkdown(text)) {
+    // 如果包含Markdown语法，则渲染
+    explanationDiv.innerHTML = `<div class="markdown-content">${markdownParser.parse(text)}</div>`;
+  } else {
+    // 如果是纯文本，直接显示（保持换行）
+    explanationDiv.innerHTML = `<div class="plain-text">${text.replace(/\n/g, '<br>')}</div>`;
   }
 }
 
@@ -192,10 +205,16 @@ function renderHistory() {
 
     const content = document.createElement('div');
     content.className = 'accordion-content';
+
+    // 渲染历史记录的解释（支持Markdown）
+    const explanationHTML = markdownParser.hasMarkdown(item.explanation)
+      ? `<div class="markdown-content">${markdownParser.parse(item.explanation)}</div>`
+      : `<div class="plain-text">${item.explanation.replace(/\n/g, '<br>')}</div>`;
+
     content.innerHTML = `
       <div class="history-timestamp">${item.timestamp}</div>
       <div class="history-text"><strong>文字：</strong>${item.text}</div>
-      <div class="history-explanation"><strong>解释：</strong>${item.explanation}</div>
+      <div class="history-explanation"><strong>解释：</strong>${explanationHTML}</div>
     `;
 
     header.addEventListener('click', () => {

@@ -28,6 +28,7 @@
         "sidebar.html",
         "sidebar.js",
         "sidebar.css",
+        "markdown.js",
         "i18n.js"
       ],
       "matches": ["<all_urls>"]
