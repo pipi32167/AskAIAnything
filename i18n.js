@@ -79,7 +79,10 @@ const translations = {
       promptMinRequired: "至少需要保留一个提示词",
       deletePromptConfirm: "确定要删除这个提示词吗？",
       resetPromptsConfirm: "确定要恢复默认提示词吗？这将覆盖所有自定义提示词。",
-      promptsReset: "已恢复默认提示词"
+      promptsReset: "已恢复默认提示词",
+      contextTypeSelection: "选中文字",
+      contextTypePage: "整个页面",
+      contextTypeBoth: "两种场景"
     }
   },
   en: {
@@ -161,7 +164,10 @@ const translations = {
       promptMinRequired: "At least one prompt is required",
       deletePromptConfirm: "Are you sure you want to delete this prompt?",
       resetPromptsConfirm: "Are you sure you want to reset to default prompts? This will overwrite all custom prompts.",
-      promptsReset: "Reset to default prompts"
+      promptsReset: "Reset to default prompts",
+      contextTypeSelection: "Selected Text",
+      contextTypePage: "Entire Page",
+      contextTypeBoth: "Both Scenarios"
     }
   }
 };

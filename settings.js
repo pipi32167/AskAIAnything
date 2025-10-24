@@ -346,19 +346,28 @@ function getDefaultPrompts() {
   return [
     {
       name: "解释含义",
-      userPromptTemplate: "请解释以下文字的含义：\n\n{text}"
+      userPromptTemplate: "请解释以下文字的含义：\n\n{text}",
+      contextType: "selection"
     },
     {
       name: "翻译成中文",
-      userPromptTemplate: "请将以下文字翻译成中文：\n\n{text}"
+      userPromptTemplate: "请将以下文字翻译成中文：\n\n{text}",
+      contextType: "selection"
     },
     {
       name: "总结要点",
-      userPromptTemplate: "请总结以下文字的主要要点：\n\n{text}"
+      userPromptTemplate: "请总结以下文字的主要要点：\n\n{text}",
+      contextType: "both"
     },
     {
       name: "分析语法",
-      userPromptTemplate: "请分析以下文字的语法结构和用法：\n\n{text}"
+      userPromptTemplate: "请分析以下文字的语法结构和用法：\n\n{text}",
+      contextType: "selection"
+    },
+    {
+      name: "总结网页内容",
+      userPromptTemplate: "请总结以下网页的主要内容：\n\n{text}",
+      contextType: "page"
     }
   ];
 }
@@ -373,11 +382,16 @@ function renderPrompts() {
     promptItem.className = 'prompt-item';
     promptItem.dataset.index = index;
 
+    // 获取上下文类型显示文本
+    const contextTypeText = getContextTypeText(prompt.contextType || 'both');
+    const contextTypeIcon = getContextTypeIcon(prompt.contextType || 'both');
+
     promptItem.innerHTML = `
       <div class="prompt-header">
         <div class="prompt-name">
           <span class="prompt-index">${index + 1}</span>
           <span class="prompt-name-text">${prompt.name}</span>
+          <span class="context-type-indicator" title="${contextTypeText}">${contextTypeIcon} ${contextTypeText}</span>
         </div>
         <div class="prompt-actions">
           <button class="prompt-btn edit" title="编辑">✏️</button>
@@ -398,6 +412,26 @@ function renderPrompts() {
   });
 }
 
+// 获取上下文类型显示文本
+function getContextTypeText(contextType) {
+  switch (contextType) {
+    case 'selection': return i18nInstance ? i18nInstance.t('settings.contextTypeSelection') : '选中文字';
+    case 'page': return i18nInstance ? i18nInstance.t('settings.contextTypePage') : '整个页面';
+    case 'both': return i18nInstance ? i18nInstance.t('settings.contextTypeBoth') : '两种场景';
+    default: return '两种场景';
+  }
+}
+
+// 获取上下文类型图标
+function getContextTypeIcon(contextType) {
+  switch (contextType) {
+    case 'selection': return '📝';
+    case 'page': return '📄';
+    case 'both': return '🔀';
+    default: return '🔀';
+  }
+}
+
 // 开始编辑提示词
 function startEditPrompt(index) {
   const prompt = prompts[index];
@@ -407,11 +441,21 @@ function startEditPrompt(index) {
   const promptTemplatePlaceholder = i18nInstance.t('settings.promptTemplatePlaceholder');
   const cancelText = i18nInstance.t('settings.cancelEdit');
   const saveText = i18nInstance.t('settings.savePrompt');
+  const contextTypeSelection = i18nInstance.t('settings.contextTypeSelection');
+  const contextTypePage = i18nInstance.t('settings.contextTypePage');
+  const contextTypeBoth = i18nInstance.t('settings.contextTypeBoth');
+
+  const currentContextType = prompt.contextType || 'both';
 
   promptItem.innerHTML = `
     <div class="prompt-header">
       <input type="text" class="prompt-name-input" value="${prompt.name}" placeholder="${promptNamePlaceholder}">
     </div>
+    <select class="prompt-context-select">
+      <option value="selection" ${currentContextType === 'selection' ? 'selected' : ''}>📝 ${contextTypeSelection}</option>
+      <option value="page" ${currentContextType === 'page' ? 'selected' : ''}>📄 ${contextTypePage}</option>
+      <option value="both" ${currentContextType === 'both' ? 'selected' : ''}>🔀 ${contextTypeBoth}</option>
+    </select>
     <textarea class="prompt-edit-template" placeholder="${promptTemplatePlaceholder}">${prompt.userPromptTemplate}</textarea>
     <div class="prompt-edit-actions">
       <button class="cancel-btn">${cancelText}</button>
@@ -420,6 +464,7 @@ function startEditPrompt(index) {
   `;
 
   const nameInput = promptItem.querySelector('.prompt-name-input');
+  const contextSelect = promptItem.querySelector('.prompt-context-select');
   const templateInput = promptItem.querySelector('.prompt-edit-template');
   const cancelBtn = promptItem.querySelector('.cancel-btn');
   const saveBtn = promptItem.querySelector('.save-btn');
@@ -427,11 +472,11 @@ function startEditPrompt(index) {
   nameInput.focus();
 
   cancelBtn.addEventListener('click', () => renderPrompts());
-  saveBtn.addEventListener('click', () => savePrompt(index, nameInput.value, templateInput.value));
+  saveBtn.addEventListener('click', () => savePrompt(index, nameInput.value, templateInput.value, contextSelect.value));
 }
 
 // 保存提示词
-async function savePrompt(index, name, userPromptTemplate) {
+async function savePrompt(index, name, userPromptTemplate, contextType) {
   if (!name.trim() || !userPromptTemplate.trim()) {
     showStatus(i18nInstance.t('settings.promptRequired'), 'error');
     return;
@@ -442,7 +487,11 @@ async function savePrompt(index, name, userPromptTemplate) {
     return;
   }
 
-  prompts[index] = { name: name.trim(), userPromptTemplate: userPromptTemplate.trim() };
+  prompts[index] = {
+    name: name.trim(),
+    userPromptTemplate: userPromptTemplate.trim(),
+    contextType: contextType || 'both'
+  };
   await chrome.storage.sync.set({ prompts });
 
   renderPrompts();
@@ -475,7 +524,8 @@ async function deletePrompt(index) {
 function handleAddPrompt() {
   const newPrompt = {
     name: '新提示词',
-    userPromptTemplate: '请分析以下文字：\n\n{text}'
+    userPromptTemplate: '请分析以下文字：\n\n{text}',
+    contextType: 'both'
   };
 
   prompts.push(newPrompt);

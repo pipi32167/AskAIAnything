@@ -349,6 +349,16 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.context-type-indicator {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #EBF5FB;
+  color: #5DADE2;
+  font-weight: 500;
 }
 
 .prompt-index {
@@ -473,6 +483,23 @@ textarea:focus {
 }
 
 .prompt-name-input:focus {
+  outline: none;
+  border-color: #5DADE2;
+  box-shadow: 0 0 0 2px rgba(93, 173, 226, 0.2);
+}
+
+.prompt-context-select {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #D6EAF8;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #2C3E50;
+  background: white;
+  margin-bottom: 12px;
+}
+
+.prompt-context-select:focus {
   outline: none;
   border-color: #5DADE2;
   box-shadow: 0 0 0 2px rgba(93, 173, 226, 0.2);
