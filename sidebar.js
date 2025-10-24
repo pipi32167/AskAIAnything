@@ -36,12 +36,18 @@ function updateUILanguage() {
   document.getElementById("clearAllHistory").title = i18nInstance.t(
     "sidebar.clearAllConfirm"
   );
-  
+
   // 更新搜索和过滤器的UI
-  document.getElementById("historySearch").placeholder = i18nInstance.t("sidebar.searchPlaceholder");
-  document.getElementById("clearSearch").title = i18nInstance.t("sidebar.clearSearch");
-  document.getElementById("clearFilters").title = i18nInstance.t("sidebar.clearFilters");
-  
+  document.getElementById("historySearch").placeholder = i18nInstance.t(
+    "sidebar.searchPlaceholder"
+  );
+  document.getElementById("clearSearch").title = i18nInstance.t(
+    "sidebar.clearSearch"
+  );
+  document.getElementById("clearFilters").title = i18nInstance.t(
+    "sidebar.clearFilters"
+  );
+
   // 更新提示词过滤器选项
   updatePromptFilterOptions();
 }
@@ -65,12 +71,18 @@ function setupEventListeners() {
     .addEventListener("click", clearAllHistory);
 
   // 搜索框事件监听
-  document.getElementById("historySearch").addEventListener("input", filterHistory);
+  document
+    .getElementById("historySearch")
+    .addEventListener("input", filterHistory);
   document.getElementById("clearSearch").addEventListener("click", clearSearch);
 
   // 提示词过滤器事件监听
-  document.getElementById("promptFilter").addEventListener("change", filterHistory);
-  document.getElementById("clearFilters").addEventListener("click", clearFilters);
+  document
+    .getElementById("promptFilter")
+    .addEventListener("change", filterHistory);
+  document
+    .getElementById("clearFilters")
+    .addEventListener("click", clearFilters);
 
   // 接收来自content script的消息
   window.addEventListener("message", (event) => {
@@ -340,7 +352,7 @@ function renderHistory() {
 
   filteredHistory.forEach((item, originalIndex) => {
     // 找到原始历史记录中的索引
-    const index = history.findIndex(h => h === item);
+    const index = history.findIndex((h) => h === item);
     const accordionItem = document.createElement("div");
     accordionItem.className = "accordion-item";
 
@@ -485,21 +497,25 @@ function clearAllHistory() {
 function updatePromptFilterOptions() {
   const promptFilter = document.getElementById("promptFilter");
   const currentValue = promptFilter.value;
-  
+
   // 获取所有唯一的提示词名称
-  const promptNames = [...new Set(history.map(item => item.promptName).filter(Boolean))];
-  
+  const promptNames = [
+    ...new Set(history.map((item) => item.promptName).filter(Boolean)),
+  ];
+
   // 清空现有选项
-  promptFilter.innerHTML = `<option value="">${i18nInstance.t("sidebar.allPrompts")}</option>`;
-  
+  promptFilter.innerHTML = `<option value="">${i18nInstance.t(
+    "sidebar.allPrompts"
+  )}</option>`;
+
   // 添加提示词选项
-  promptNames.forEach(promptName => {
+  promptNames.forEach((promptName) => {
     const option = document.createElement("option");
     option.value = promptName;
     option.textContent = promptName;
     promptFilter.appendChild(option);
   });
-  
+
   // 恢复之前的选择（如果还存在）
   if (currentValue && promptNames.includes(currentValue)) {
     promptFilter.value = currentValue;
@@ -508,33 +524,40 @@ function updatePromptFilterOptions() {
 
 // 过滤历史记录
 function filterHistory() {
-  const searchQuery = document.getElementById("historySearch").value.toLowerCase().trim();
+  const searchQuery = document
+    .getElementById("historySearch")
+    .value.toLowerCase()
+    .trim();
   const selectedPrompt = document.getElementById("promptFilter").value;
-  
-  filteredHistory = history.filter(item => {
+
+  filteredHistory = history.filter((item) => {
     // 提示词过滤
     if (selectedPrompt && item.promptName !== selectedPrompt) {
       return false;
     }
-    
+
     // 关键词搜索（在文本内容和解释中搜索）
     if (searchQuery) {
       const searchableText = (
-        (item.text || '') + ' ' + 
-        (item.explanation || '') + ' ' + 
-        (item.promptName || '') + ' ' + 
-        (item.sourceInfo || '') + ' ' +
-        (item.pageTitle || '')
+        (item.text || "") +
+        " " +
+        (item.explanation || "") +
+        " " +
+        (item.promptName || "") +
+        " " +
+        (item.sourceInfo || "") +
+        " " +
+        (item.pageTitle || "")
       ).toLowerCase();
-      
+
       if (!searchableText.includes(searchQuery)) {
         return false;
       }
     }
-    
+
     return true;
   });
-  
+
   renderHistory();
 }
 
