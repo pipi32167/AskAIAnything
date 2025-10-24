@@ -287,6 +287,29 @@ body {
   margin-bottom: 12px;
 }
 
+.history-url {
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #f0f8ff;
+  border-radius: 4px;
+  border-left: 3px solid #2196F3;
+  font-size: 13px;
+}
+
+.history-url a {
+  color: #2196F3;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 100%;
+}
+
+.history-url a:hover {
+  text-decoration: underline;
+}
+
 .history-text {
   margin-bottom: 12px;
   padding: 8px;
