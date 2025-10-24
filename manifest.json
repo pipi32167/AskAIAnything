@@ -1,16 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "AI Text Explainer",
+  "name": "__MSG_extName__",
   "version": "1.0.0",
-  "description": "选择文字，使用AI解释含义，在侧边栏显示结果和历史记录",
+  "description": "__MSG_extDescription__",
   "permissions": [
     "contextMenus",
     "storage",
     "activeTab"
   ],
   "action": {
-    "default_popup": "settings.html",
-    "default_title": "AI Text Explainer - 设置"
+    "default_title": "AI Text Explainer"
   },
   "options_page": "settings.html",
   "background": {
@@ -29,9 +28,7 @@
         "sidebar.html",
         "sidebar.js",
         "sidebar.css",
-        "i18n.js",
-        "_locales/zh/messages.json",
-        "_locales/en/messages.json"
+        "i18n.js"
       ],
       "matches": ["<all_urls>"]
     }

@@ -5,6 +5,8 @@ let sidebarIframe = null;
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'explainText') {
     showSidebar(message.text);
+  } else if (message.action === 'toggleSidebar') {
+    toggleSidebar();
   }
 });
 
@@ -14,6 +16,22 @@ window.addEventListener('message', (event) => {
     hideSidebar();
   }
 });
+
+// 切换侧边栏显示/隐藏
+function toggleSidebar() {
+  // 如果侧边栏不存在，创建并显示
+  if (!sidebarIframe) {
+    createSidebar();
+    sidebarIframe.style.display = 'block';
+  } else {
+    // 切换显示状态
+    if (sidebarIframe.style.display === 'none') {
+      sidebarIframe.style.display = 'block';
+    } else {
+      sidebarIframe.style.display = 'none';
+    }
+  }
+}
 
 // 显示侧边栏
 function showSidebar(text) {

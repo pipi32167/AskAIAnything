@@ -7,6 +7,14 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+// 处理扩展图标点击
+chrome.action.onClicked.addListener(async (tab) => {
+  // 发送消息到content script打开侧边栏（不选择任何文字）
+  chrome.tabs.sendMessage(tab.id, {
+    action: "toggleSidebar"
+  });
+});
+
 // 处理右键菜单点击
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "explainText" && info.selectionText) {
