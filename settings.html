@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>设置 - AI Text Explainer</title>
+  <title>设置 - Ask AI Anything</title>
   <link rel="stylesheet" href="settings.css">
 </head>
+
 <body>
   <div class="settings-container">
     <div class="settings-header">
@@ -19,13 +21,8 @@
           <span class="label-text">API 端点 (Base URL)</span>
           <span class="label-required">*</span>
         </label>
-        <input
-          type="text"
-          id="apiEndpoint"
-          name="apiEndpoint"
-          placeholder="https://api.openai.com/v1/chat/completions"
-          required
-        >
+        <input type="text" id="apiEndpoint" name="apiEndpoint" placeholder="https://api.openai.com/v1/chat/completions"
+          required>
         <small class="help-text">例如: https://api.openai.com/v1/chat/completions</small>
       </div>
 
@@ -35,13 +32,7 @@
           <span class="label-required">*</span>
         </label>
         <div class="input-with-toggle">
-          <input
-            type="password"
-            id="apiKey"
-            name="apiKey"
-            placeholder="sk-..."
-            required
-          >
+          <input type="password" id="apiKey" name="apiKey" placeholder="sk-..." required>
           <button type="button" id="toggleKeyVisibility" class="toggle-btn" title="显示/隐藏密钥">
             👁️
           </button>
@@ -65,13 +56,8 @@
             <option value="custom">自定义模型名称</option>
           </optgroup>
         </select>
-        <input
-          type="text"
-          id="customModel"
-          name="customModel"
-          placeholder="输入自定义模型名称"
-          style="display: none; margin-top: 8px;"
-        >
+        <input type="text" id="customModel" name="customModel" placeholder="输入自定义模型名称"
+          style="display: none; margin-top: 8px;">
         <small class="help-text">选择要使用的AI模型</small>
       </div>
 
@@ -79,15 +65,7 @@
         <label for="maxTokens">
           <span class="label-text">最大Token数</span>
         </label>
-        <input
-          type="number"
-          id="maxTokens"
-          name="maxTokens"
-          value="500"
-          min="100"
-          max="4000"
-          step="100"
-        >
+        <input type="number" id="maxTokens" name="maxTokens" value="500" min="100" max="4000" step="100">
         <small class="help-text">控制AI响应的长度 (100-4000)</small>
       </div>
 
@@ -95,12 +73,8 @@
         <label for="systemPrompt">
           <span class="label-text">系统提示词 (System Prompt)</span>
         </label>
-        <textarea
-          id="systemPrompt"
-          name="systemPrompt"
-          rows="4"
-          placeholder="你是一个专业的语言助手，擅长解释文字的含义、上下文和用法。请用简洁清晰的中文回答。"
-        ></textarea>
+        <textarea id="systemPrompt" name="systemPrompt" rows="4"
+          placeholder="你是一个专业的AI助手，可以回答各种关于文字的问题。请用简洁清晰的中文回答。"></textarea>
         <small class="help-text">自定义AI的回答风格和角色，留空则使用默认提示词</small>
       </div>
 
@@ -108,12 +82,8 @@
         <label for="userPromptTemplate">
           <span class="label-text">用户提示词模板</span>
         </label>
-        <textarea
-          id="userPromptTemplate"
-          name="userPromptTemplate"
-          rows="3"
-          placeholder="请解释以下文字的含义：&#10;&#10;{text}"
-        ></textarea>
+        <textarea id="userPromptTemplate" name="userPromptTemplate" rows="3"
+          placeholder="请分析以下文字：&#10;&#10;{text}"></textarea>
         <small class="help-text">使用 {text} 作为占位符代表选中的文字，留空则使用默认模板</small>
       </div>
 
@@ -199,4 +169,5 @@
   <script src="i18n.js"></script>
   <script src="settings.js"></script>
 </body>
+
 </html>

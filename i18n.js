@@ -2,11 +2,11 @@
 const translations = {
   zh: {
     sidebar: {
-      title: "AI 文字解释",
+      title: "Ask AI Anything",
       settings: "设置",
       close: "关闭",
       selectedText: "选中文字：",
-      aiExplanation: "AI 解释：",
+      aiExplanation: "AI 回答：",
       analyzing: "正在分析中...",
       error: "错误：",
       history: "历史记录",
@@ -23,7 +23,7 @@ const translations = {
       copySuccess: "已复制 Markdown 格式到剪贴板",
       copyFailed: "复制失败，请手动复制内容",
       configRequired:
-        '请先配置API密钥。\n\n点击侧边栏右上角的 ⚙️ 设置按钮进行配置，或者点击浏览器工具栏中的扩展图标打开设置页面。\n\n配置后即可使用AI解释功能。\n\n选中的文字: "{text}"',
+        '请先配置API密钥。\n\n点击侧边栏右上角的 ⚙️ 设置按钮进行配置，或者点击浏览器工具栏中的扩展图标打开设置页面。\n\n配置后即可使用AI问答功能。\n\n选中的文字: "{text}"',
     },
     settings: {
       title: "API 配置",
@@ -44,10 +44,10 @@ const translations = {
       maxTokensHelp: "控制AI响应的长度 (100-4000)",
       systemPrompt: "系统提示词 (System Prompt)",
       systemPromptPlaceholder:
-        "你是一个专业的语言助手，擅长解释文字的含义、上下文和用法。请用简洁清晰的中文回答，适当使用Markdown格式（如**粗体**、*斜体*、列表等）来提升可读性。",
+        "你是一个专业的AI助手，可以回答各种关于文字的问题。请用简洁清晰的中文回答，适当使用Markdown格式（如**粗体**、*斜体*、列表等）来提升可读性。",
       systemPromptHelp: "自定义AI的回答风格和角色，留空则使用默认提示词",
       userPromptTemplate: "用户提示词模板",
-      userPromptTemplatePlaceholder: "请解释以下文字的含义：\n\n{text}",
+      userPromptTemplatePlaceholder: "请分析以下文字：\n\n{text}",
       userPromptTemplateHelp:
         "使用 {text} 作为占位符代表选中的文字，留空则使用默认模板",
       language: "界面语言",
@@ -98,11 +98,11 @@ const translations = {
   },
   en: {
     sidebar: {
-      title: "AI Text Explainer",
+      title: "Ask AI Anything",
       settings: "Settings",
       close: "Close",
       selectedText: "Selected Text:",
-      aiExplanation: "AI Explanation:",
+      aiExplanation: "AI Answer:",
       analyzing: "Analyzing...",
       error: "Error:",
       history: "History",

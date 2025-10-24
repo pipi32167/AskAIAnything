@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "AI Text Explainer"
+    "message": "Ask AI Anything"
   },
   "extDescription": {
-    "message": "Select text and explain its meaning using AI, with results and history displayed in the sidebar"
+    "message": "Select text and ask AI anything about it, with results and history displayed in the sidebar"
   }
 }

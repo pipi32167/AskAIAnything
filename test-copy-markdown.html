@@ -65,7 +65,7 @@
     <div class="test-content">
       <h3>测试内容</h3>
       <p><strong>选择这段文字进行测试：</strong></p>
-      <p>这是一段用于测试 AI 文字解释扩展的示例文本。你可以选中这段文字，然后使用右键菜单调用 AI 解释功能。测试完成后，在历史记录中应该能看到新增的"复制 Markdown"按钮。</p>
+      <p>这是一段用于测试 Ask AI Anything 扩展的示例文本。你可以选中这段文字，然后使用右键菜单向 AI 提问。测试完成后，在历史记录中应该能看到新增的"复制 Markdown"按钮。</p>
 
       <h4>Markdown 测试文本：</h4>
       <ul>
@@ -85,9 +85,9 @@
       const sampleHistory = [
         {
           text: "这是一段用于测试的文本，包含了**粗体**和*斜体*格式。",
-          explanation: "这是一个测试解释，包含了 Markdown 格式：\n\n**主要内容：**\n- 测试文本包含了 Markdown 格式\n- 粗体使用 `**` 包围\n- 斜体使用 `*` 包围\n\n*提示：* 这是为了测试复制 Markdown 功能而创建的示例。",
+          explanation: "这是一个测试回答，包含了 Markdown 格式：\n\n**主要内容：**\n- 测试文本包含了 Markdown 格式\n- 粗体使用 `**` 包围\n- 斜体使用 `*` 包围\n\n*提示：* 这是为了测试复制 Markdown 功能而创建的示例。",
           timestamp: new Date().toLocaleString("zh-CN"),
-          promptName: "文字解释",
+          promptName: "AI分析",
           sourceInfo: "测试页面",
           pageUrl: window.location.href,
           pageTitle: document.title

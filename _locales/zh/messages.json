@@ -1,8 +1,8 @@
 {
   "extName": {
-    "message": "AI 文字解释"
+    "message": "Ask AI Anything"
   },
   "extDescription": {
-    "message": "选择文字，使用AI解释含义，在侧边栏显示结果和历史记录"
+    "message": "选择文字，向AI询问任何问题，在侧边栏显示结果和历史记录"
   }
 }

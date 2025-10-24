@@ -3,13 +3,9 @@
   "name": "__MSG_extName__",
   "version": "1.0.0",
   "description": "__MSG_extDescription__",
-  "permissions": [
-    "contextMenus",
-    "storage",
-    "activeTab"
-  ],
+  "permissions": ["contextMenus", "storage", "activeTab"],
   "action": {
-    "default_title": "AI Text Explainer"
+    "default_title": "Ask AI Anything"
   },
   "options_page": "settings.html",
   "background": {

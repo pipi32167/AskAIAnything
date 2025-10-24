@@ -409,11 +409,11 @@ async function loadPrompts() {
 function getDefaultPrompts() {
   return [
     {
-      name: "解释含义",
-      userPromptTemplate: "请解释以下文字的含义：\n\n{text}",
+      name: "分析文字",
+      userPromptTemplate: "请分析以下文字：\n\n{text}",
       contextType: "selection",
       systemPrompt:
-        "你是一个专业的语言助手，擅长解释文字的含义、上下文和用法。请用简洁清晰的中文回答。",
+        "你是一个专业的AI助手，可以回答各种关于文字的问题。请用简洁清晰的中文回答。",
       apiModel: "default", // default表示使用全局设置
       maxTokens: "default",
     },

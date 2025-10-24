@@ -1,13 +1,13 @@
-# AI Text Explainer - Chrome 扩展
+# Ask AI Anything - Chrome 扩展
 
-一个Chrome扩展，可以选择网页上的任意文字，通过AI解释其含义，并在侧边栏中显示结果和历史记录。
+一个Chrome扩展，可以选择网页上的任意文字，向AI询问任何问题，并在侧边栏中显示结果和历史记录。
 
-![演示效果](https://via.placeholder.com/800x450.png?text=AI+Text+Explainer+Demo)
+![演示效果](https://via.placeholder.com/800x450.png?text=Ask+AI+Anything+Demo)
 
 ## 功能特点
 
-- ✨ 选择网页文字，右键即可调用AI解释
-- 📊 侧边栏显示AI详细解释
+- ✨ 选择网页文字，右键即可向AI提问
+- 📊 侧边栏显示AI回答
 - 📝 自动保存历史记录（最多20条）
 - 🗂️ 折叠式历史列表，仅显示文字标题
 - ⚙️ 支持自定义AI API配置
@@ -23,8 +23,8 @@
 
 1. **下载项目**
    ```bash
-   git clone https://github.com/your-username/ai-text-explainer.git
-   cd ai-text-explainer
+   git clone https://github.com/your-username/ask-ai-anything.git
+   cd ask-ai-anything
    ```
    或直接下载ZIP并解压
 
@@ -43,7 +43,7 @@
 
 5. **验证安装**
    - 扩展图标应该出现在浏览器工具栏中
-   - 在扩展列表中可以看到"AI Text Explainer"
+   - 在扩展列表中可以看到"Ask AI Anything"
 
 ---
 
@@ -55,7 +55,7 @@
 
 1. **打开扩展详情页**
    - 访问 `chrome://extensions/`
-   - 找到"AI Text Explainer"扩展
+   - 找到"Ask AI Anything"扩展
    - 点击"详情"按钮
 
 2. **打开开发者控制台**
@@ -113,7 +113,7 @@ async function callAI(text) {
       messages: [
         {
           role: 'user',
-          content: `请解释以下文字的含义：\n\n${text}`
+          content: `请分析以下文字：\n\n${text}`
         }
       ]
     })
@@ -134,14 +134,14 @@ async function callAI(text) {
    - 在任意网页上，用鼠标选中你想要解释的文字
    - 可以是单词、句子、段落或任意文本片段
 
-2. **调用AI解释**
+2. **向AI提问**
    - 右键点击选中的文字
-   - 在弹出菜单中选择"使用AI解释 '你选择的文字'"
+   - 在弹出菜单中选择AI分析选项
 
 3. **查看解释**
    - 页面右侧会自动弹出侧边栏
    - 显示"正在分析中..."加载状态
-   - AI解释结果将在几秒钟内显示
+   - AI回答将在几秒钟内显示
 
 4. **查看历史记录**
    - 向下滚动侧边栏，可以看到"历史记录"部分
@@ -168,7 +168,7 @@ async function callAI(text) {
 
 ```
 ┌─────────────────────────────────┐
-│  AI 文字解释               [✕]  │  ← 标题栏
+│  Ask AI Anything           [✕]  │  ← 标题栏
 ├─────────────────────────────────┤
 │  选中文字：                      │
 │  ┌───────────────────────────┐  │
@@ -177,7 +177,7 @@ async function callAI(text) {
 │                                 │
 │  AI 解释：                      │
 │  ┌───────────────────────────┐  │
-│  │ AI生成的解释内容           │  │  ← AI解释结果
+│  │ AI生成的回答内容           │  │  ← AI回答结果
 │  │                           │  │
 │  └───────────────────────────┘  │
 │                                 │
@@ -397,7 +397,7 @@ ask-me-anything/
 
 ### v1.0.0 (2025-10-23)
 - 初始版本发布
-- 支持选中文字AI解释
+- 支持选中文字向AI提问
 - 侧边栏展示和历史记录功能
 - 支持OpenAI API配置
 

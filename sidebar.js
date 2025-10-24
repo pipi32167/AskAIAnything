@@ -211,7 +211,7 @@ async function callAI(text, customPromptTemplate, promptConfig) {
   // 使用提示词特定的系统提示词，或默认提示词
   let systemPrompt =
     config.systemPrompt ||
-    "你是一个专业的语言助手，擅长解释文字的含义、上下文和用法。请用简洁清晰的中文回答。";
+    "你是一个专业的AI助手，可以回答各种关于文字的问题。请用简洁清晰的中文回答。";
 
   // 如果提示词配置中指定了系统提示词，且不是"default"，则使用它
   if (
@@ -226,7 +226,7 @@ async function callAI(text, customPromptTemplate, promptConfig) {
   const userPromptTemplate =
     customPromptTemplate ||
     config.userPromptTemplate ||
-    "请解释以下文字的含义：\n\n{text}";
+    "请分析以下文字：\n\n{text}";
   const userPrompt = userPromptTemplate.replace("{text}", text);
 
   // 确定使用的模型
@@ -526,7 +526,7 @@ function clearAllHistory() {
 // 复制历史记录为 Markdown 格式
 function copyHistoryAsMarkdown(item) {
   // 构建 Markdown 格式的文本
-  let markdownText = `# ${item.promptName || "文字解释"}\n\n`;
+  let markdownText = `# ${item.promptName || "AI分析"}\n\n`;
 
   // 添加时间戳
   markdownText += `**时间：** ${item.timestamp}\n\n`;
@@ -547,7 +547,7 @@ function copyHistoryAsMarkdown(item) {
     markdownText += `${item.text}\n\n`;
   }
 
-  // 添加AI解释
+  // 添加AI回答
   markdownText += `## AI 解释\n\n${item.explanation}\n\n`;
 
   // 添加分隔线
