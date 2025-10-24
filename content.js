@@ -28,6 +28,8 @@ function toggleSidebar() {
     if (sidebarIframe.style.display === 'none') {
       sidebarIframe.style.display = 'block';
     } else {
+      // 隐藏前重置当前解释状态
+      sidebarIframe.contentWindow.postMessage({ action: 'reset' }, '*');
       sidebarIframe.style.display = 'none';
     }
   }
@@ -76,6 +78,8 @@ function createSidebar() {
 // 隐藏侧边栏
 function hideSidebar() {
   if (sidebarIframe) {
+    // 隐藏前重置当前解释状态
+    sidebarIframe.contentWindow.postMessage({ action: 'reset' }, '*');
     sidebarIframe.style.display = 'none';
   }
 }

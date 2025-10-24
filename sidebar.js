@@ -2,6 +2,7 @@
 let currentText = '';
 let history = [];
 let i18nInstance;
+let hasCurrentExplanation = false; // 标记是否有当前解释
 
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {
@@ -9,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateUILanguage();
   loadHistory();
   setupEventListeners();
+  hideCurrentExplanation(); // 初始时隐藏
 });
 
 // 更新UI语言
@@ -27,6 +29,7 @@ function updateUILanguage() {
 function setupEventListeners() {
   // 关闭按钮
   document.getElementById('closeSidebar').addEventListener('click', () => {
+    hideCurrentExplanation(); // 关闭时隐藏当前解释
     window.parent.postMessage({ action: 'closeSidebar' }, '*');
   });
 
@@ -42,6 +45,8 @@ function setupEventListeners() {
   window.addEventListener('message', (event) => {
     if (event.data.action === 'explainText') {
       handleExplainRequest(event.data.text);
+    } else if (event.data.action === 'reset') {
+      hideCurrentExplanation();
     }
   });
 }
@@ -49,6 +54,9 @@ function setupEventListeners() {
 // 处理解释请求
 async function handleExplainRequest(text) {
   currentText = text;
+  hasCurrentExplanation = true;
+  showCurrentExplanation(); // 显示当前解释区域
+
   document.getElementById('currentSelectedText').textContent = text;
   document.getElementById('currentExplanation').innerHTML = `<div class="loading">${i18nInstance.t('sidebar.analyzing')}</div>`;
 
@@ -65,6 +73,24 @@ async function handleExplainRequest(text) {
   } catch (error) {
     document.getElementById('currentExplanation').innerHTML =
       `<div class="error">${i18nInstance.t('sidebar.error')} ${error.message}</div>`;
+  }
+}
+
+// 显示当前解释区域
+function showCurrentExplanation() {
+  const explanationSection = document.querySelector('.current-explanation');
+  if (explanationSection) {
+    explanationSection.style.display = 'block';
+    hasCurrentExplanation = true;
+  }
+}
+
+// 隐藏当前解释区域
+function hideCurrentExplanation() {
+  const explanationSection = document.querySelector('.current-explanation');
+  if (explanationSection) {
+    explanationSection.style.display = 'none';
+    hasCurrentExplanation = false;
   }
 }
 
@@ -215,7 +241,15 @@ function renderHistory() {
       <div class="history-timestamp">${item.timestamp}</div>
       <div class="history-text"><strong>文字：</strong>${item.text}</div>
       <div class="history-explanation"><strong>解释：</strong>${explanationHTML}</div>
+      <button class="view-in-main-btn" data-index="${index}">📌 在主区域查看</button>
     `;
+
+    // 查看在主区域按钮
+    const viewBtn = content.querySelector('.view-in-main-btn');
+    viewBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      loadHistoryToMain(item);
+    });
 
     header.addEventListener('click', () => {
       const isOpen = accordionItem.classList.contains('open');
@@ -235,6 +269,19 @@ function renderHistory() {
   });
 }
 
+// 将历史记录加载到主区域
+function loadHistoryToMain(item) {
+  currentText = item.text;
+  hasCurrentExplanation = true;
+  showCurrentExplanation();
+
+  document.getElementById('currentSelectedText').textContent = item.text;
+  displayExplanation(item.explanation);
+
+  // 滚动到顶部
+  document.querySelector('.sidebar-content').scrollTop = 0;
+}
+
 // 删除单个历史记录
 function deleteHistoryItem(index) {
   if (confirm(i18nInstance.t('sidebar.deleteConfirm'))) {
@@ -250,5 +297,9 @@ function clearAllHistory() {
     history = [];
     chrome.storage.local.set({ history });
     renderHistory();
+    // 如果没有当前解释，隐藏解释区域
+    if (!hasCurrentExplanation) {
+      hideCurrentExplanation();
+    }
   }
 }
