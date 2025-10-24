@@ -143,6 +143,25 @@
 
     <div id="statusMessage" class="status-message" style="display: none;"></div>
 
+    <!-- 提示词管理部分 -->
+    <div class="prompts-section">
+      <h2 id="promptsTitle">右键菜单提示词</h2>
+      <p class="prompts-subtitle" id="promptsSubtitle">管理右键菜单中的提示词选项</p>
+
+      <div id="promptsList" class="prompts-list">
+        <!-- 提示词列表将动态插入这里 -->
+      </div>
+
+      <div class="form-actions">
+        <button type="button" id="addPrompt" class="btn btn-secondary">
+          ➕ 添加提示词
+        </button>
+        <button type="button" id="resetPrompts" class="btn btn-secondary">
+          🔄 恢复默认提示词
+        </button>
+      </div>
+    </div>
+
     <div class="presets-section">
       <h2>快速配置</h2>
       <p class="presets-subtitle">点击下方按钮快速填充常见AI服务的配置</p>

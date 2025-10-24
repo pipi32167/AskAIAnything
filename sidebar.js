@@ -44,7 +44,7 @@ function setupEventListeners() {
   // 接收来自content script的消息
   window.addEventListener('message', (event) => {
     if (event.data.action === 'explainText') {
-      handleExplainRequest(event.data.text);
+      handleExplainRequest(event.data.text, event.data.promptTemplate);
     } else if (event.data.action === 'reset') {
       hideCurrentExplanation();
     }
@@ -52,7 +52,7 @@ function setupEventListeners() {
 }
 
 // 处理解释请求
-async function handleExplainRequest(text) {
+async function handleExplainRequest(text, customPromptTemplate) {
   currentText = text;
   hasCurrentExplanation = true;
   showCurrentExplanation(); // 显示当前解释区域
@@ -61,9 +61,8 @@ async function handleExplainRequest(text) {
   document.getElementById('currentExplanation').innerHTML = `<div class="loading">${i18nInstance.t('sidebar.analyzing')}</div>`;
 
   try {
-    // 调用AI API - 这里使用OpenAI API作为示例
-    // 你需要替换成你自己的API密钥和端点
-    const explanation = await callAI(text);
+    // 调用AI API - 使用自定义提示词（如果提供）
+    const explanation = await callAI(text, customPromptTemplate);
 
     // 显示解释 - 支持Markdown渲染
     displayExplanation(explanation);
@@ -108,7 +107,7 @@ function displayExplanation(text) {
 }
 
 // 调用AI API
-async function callAI(text) {
+async function callAI(text, customPromptTemplate) {
   // 从storage获取API配置
   const config = await chrome.storage.sync.get([
     'apiKey',
@@ -127,7 +126,8 @@ async function callAI(text) {
   // 使用自定义提示词或默认提示词
   const systemPrompt = config.systemPrompt || '你是一个专业的语言助手，擅长解释文字的含义、上下文和用法。请用简洁清晰的中文回答。';
 
-  const userPromptTemplate = config.userPromptTemplate || '请解释以下文字的含义：\n\n{text}';
+  // 优先使用右键菜单传递的提示词，否则使用设置中的提示词模板
+  const userPromptTemplate = customPromptTemplate || config.userPromptTemplate || '请解释以下文字的含义：\n\n{text}';
   const userPrompt = userPromptTemplate.replace('{text}', text);
 
   // 调用API

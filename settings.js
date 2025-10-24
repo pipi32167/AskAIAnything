@@ -1,10 +1,14 @@
 // 设置页面逻辑
 let i18nInstance;
+let prompts = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   i18nInstance = await initI18n();
   loadSettings();
+  await loadPrompts();
   setupEventListeners();
+  renderPrompts();
+  updateUILanguage();
 });
 
 // 预设配置
@@ -58,6 +62,10 @@ function setupEventListeners() {
 
   // 语言切换
   document.getElementById('language').addEventListener('change', handleLanguageChange);
+
+  // 提示词管理
+  document.getElementById('addPrompt').addEventListener('click', handleAddPrompt);
+  document.getElementById('resetPrompts').addEventListener('click', handleResetPrompts);
 }
 
 // 加载已保存的设置
@@ -265,6 +273,15 @@ async function handleLanguageChange(e) {
   window.location.reload();
 }
 
+// 更新UI语言
+function updateUILanguage() {
+  // Update prompts section
+  document.getElementById('promptsTitle').textContent = i18nInstance.t('settings.promptsTitle');
+  document.getElementById('promptsSubtitle').textContent = i18nInstance.t('settings.promptsSubtitle');
+  document.getElementById('addPrompt').innerHTML = i18nInstance.t('settings.addPrompt');
+  document.getElementById('resetPrompts').innerHTML = i18nInstance.t('settings.resetPrompts');
+}
+
 // 应用预设配置
 function applyPreset(presetName) {
   const preset = presets[presetName];
@@ -308,5 +325,180 @@ function showStatus(message, type = 'info') {
     setTimeout(() => {
       statusEl.style.display = 'none';
     }, 3000);
+  }
+}
+
+// 提示词管理功能
+
+// 加载提示词
+async function loadPrompts() {
+  try {
+    const result = await chrome.storage.sync.get(['prompts']);
+    prompts = result.prompts || getDefaultPrompts();
+  } catch (error) {
+    console.error('加载提示词失败:', error);
+    prompts = getDefaultPrompts();
+  }
+}
+
+// 获取默认提示词
+function getDefaultPrompts() {
+  return [
+    {
+      name: "解释含义",
+      userPromptTemplate: "请解释以下文字的含义：\n\n{text}"
+    },
+    {
+      name: "翻译成中文",
+      userPromptTemplate: "请将以下文字翻译成中文：\n\n{text}"
+    },
+    {
+      name: "总结要点",
+      userPromptTemplate: "请总结以下文字的主要要点：\n\n{text}"
+    },
+    {
+      name: "分析语法",
+      userPromptTemplate: "请分析以下文字的语法结构和用法：\n\n{text}"
+    }
+  ];
+}
+
+// 渲染提示词列表
+function renderPrompts() {
+  const container = document.getElementById('promptsList');
+  container.innerHTML = '';
+
+  prompts.forEach((prompt, index) => {
+    const promptItem = document.createElement('div');
+    promptItem.className = 'prompt-item';
+    promptItem.dataset.index = index;
+
+    promptItem.innerHTML = `
+      <div class="prompt-header">
+        <div class="prompt-name">
+          <span class="prompt-index">${index + 1}</span>
+          <span class="prompt-name-text">${prompt.name}</span>
+        </div>
+        <div class="prompt-actions">
+          <button class="prompt-btn edit" title="编辑">✏️</button>
+          <button class="prompt-btn delete" title="删除">🗑️</button>
+        </div>
+      </div>
+      <div class="prompt-template">${prompt.userPromptTemplate}</div>
+    `;
+
+    // 添加事件监听器
+    const editBtn = promptItem.querySelector('.edit');
+    const deleteBtn = promptItem.querySelector('.delete');
+
+    editBtn.addEventListener('click', () => startEditPrompt(index));
+    deleteBtn.addEventListener('click', () => deletePrompt(index));
+
+    container.appendChild(promptItem);
+  });
+}
+
+// 开始编辑提示词
+function startEditPrompt(index) {
+  const prompt = prompts[index];
+  const promptItem = document.querySelector(`.prompt-item[data-index="${index}"]`);
+
+  const promptNamePlaceholder = i18nInstance.t('settings.promptNamePlaceholder');
+  const promptTemplatePlaceholder = i18nInstance.t('settings.promptTemplatePlaceholder');
+  const cancelText = i18nInstance.t('settings.cancelEdit');
+  const saveText = i18nInstance.t('settings.savePrompt');
+
+  promptItem.innerHTML = `
+    <div class="prompt-header">
+      <input type="text" class="prompt-name-input" value="${prompt.name}" placeholder="${promptNamePlaceholder}">
+    </div>
+    <textarea class="prompt-edit-template" placeholder="${promptTemplatePlaceholder}">${prompt.userPromptTemplate}</textarea>
+    <div class="prompt-edit-actions">
+      <button class="cancel-btn">${cancelText}</button>
+      <button class="save-btn">${saveText}</button>
+    </div>
+  `;
+
+  const nameInput = promptItem.querySelector('.prompt-name-input');
+  const templateInput = promptItem.querySelector('.prompt-edit-template');
+  const cancelBtn = promptItem.querySelector('.cancel-btn');
+  const saveBtn = promptItem.querySelector('.save-btn');
+
+  nameInput.focus();
+
+  cancelBtn.addEventListener('click', () => renderPrompts());
+  saveBtn.addEventListener('click', () => savePrompt(index, nameInput.value, templateInput.value));
+}
+
+// 保存提示词
+async function savePrompt(index, name, userPromptTemplate) {
+  if (!name.trim() || !userPromptTemplate.trim()) {
+    showStatus(i18nInstance.t('settings.promptRequired'), 'error');
+    return;
+  }
+
+  if (!userPromptTemplate.includes('{text}')) {
+    showStatus(i18nInstance.t('settings.promptTextPlaceholder'), 'error');
+    return;
+  }
+
+  prompts[index] = { name: name.trim(), userPromptTemplate: userPromptTemplate.trim() };
+  await chrome.storage.sync.set({ prompts });
+
+  renderPrompts();
+  showStatus(i18nInstance.t('settings.promptSaved'), 'success');
+
+  // 刷新右键菜单
+  chrome.runtime.sendMessage({ action: 'refreshContextMenu' });
+}
+
+// 删除提示词
+async function deletePrompt(index) {
+  if (prompts.length <= 1) {
+    showStatus(i18nInstance.t('settings.promptMinRequired'), 'error');
+    return;
+  }
+
+  if (confirm(i18nInstance.t('settings.deletePromptConfirm'))) {
+    prompts.splice(index, 1);
+    await chrome.storage.sync.set({ prompts });
+
+    renderPrompts();
+    showStatus(i18nInstance.t('settings.promptDeleted'), 'success');
+
+    // 刷新右键菜单
+    chrome.runtime.sendMessage({ action: 'refreshContextMenu' });
+  }
+}
+
+// 添加新提示词
+function handleAddPrompt() {
+  const newPrompt = {
+    name: '新提示词',
+    userPromptTemplate: '请分析以下文字：\n\n{text}'
+  };
+
+  prompts.push(newPrompt);
+  chrome.storage.sync.set({ prompts });
+
+  renderPrompts();
+
+  // 自动开始编辑新添加的提示词
+  setTimeout(() => {
+    startEditPrompt(prompts.length - 1);
+  }, 100);
+}
+
+// 重置提示词
+async function handleResetPrompts() {
+  if (confirm(i18nInstance.t('settings.resetPromptsConfirm'))) {
+    prompts = getDefaultPrompts();
+    await chrome.storage.sync.set({ prompts });
+
+    renderPrompts();
+    showStatus(i18nInstance.t('settings.promptsReset'), 'success');
+
+    // 刷新右键菜单
+    chrome.runtime.sendMessage({ action: 'refreshContextMenu' });
   }
 }

@@ -4,7 +4,7 @@ let sidebarIframe = null;
 // 监听来自background的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'explainText') {
-    showSidebar(message.text);
+    showSidebar(message.text, message.promptTemplate);
   } else if (message.action === 'toggleSidebar') {
     toggleSidebar();
   }
@@ -36,7 +36,7 @@ function toggleSidebar() {
 }
 
 // 显示侧边栏
-function showSidebar(text) {
+function showSidebar(text, promptTemplate) {
   // 如果侧边栏不存在，创建它
   if (!sidebarIframe) {
     createSidebar();
@@ -49,7 +49,8 @@ function showSidebar(text) {
   setTimeout(() => {
     sidebarIframe.contentWindow.postMessage({
       action: 'explainText',
-      text: text
+      text: text,
+      promptTemplate: promptTemplate
     }, '*');
   }, 100);
 }

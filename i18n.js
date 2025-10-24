@@ -61,7 +61,25 @@ const translations = {
       infoTitle: "💡 提示：",
       infoItem1: "配置将自动同步到你的Chrome账号",
       infoItem2: "API密钥安全地保存在本地，不会上传到任何服务器",
-      infoItem3: "使用\"测试连接\"确保配置正确"
+      infoItem3: "使用\"测试连接\"确保配置正确",
+      promptsTitle: "右键菜单提示词",
+      promptsSubtitle: "管理右键菜单中的提示词选项",
+      addPrompt: "➕ 添加提示词",
+      resetPrompts: "🔄 恢复默认提示词",
+      editPrompt: "编辑",
+      deletePrompt: "删除",
+      promptNamePlaceholder: "提示词名称",
+      promptTemplatePlaceholder: "使用 {text} 作为占位符",
+      savePrompt: "保存",
+      cancelEdit: "取消",
+      promptSaved: "提示词已保存",
+      promptDeleted: "提示词已删除",
+      promptRequired: "请填写完整的提示词名称和模板",
+      promptTextPlaceholder: "提示词模板必须包含 {text} 占位符",
+      promptMinRequired: "至少需要保留一个提示词",
+      deletePromptConfirm: "确定要删除这个提示词吗？",
+      resetPromptsConfirm: "确定要恢复默认提示词吗？这将覆盖所有自定义提示词。",
+      promptsReset: "已恢复默认提示词"
     }
   },
   en: {
@@ -125,7 +143,25 @@ const translations = {
       infoTitle: "💡 Tips:",
       infoItem1: "Configuration will automatically sync to your Chrome account",
       infoItem2: "API key is stored securely locally and will not be uploaded to any server",
-      infoItem3: "Use \"Test Connection\" to ensure configuration is correct"
+      infoItem3: "Use \"Test Connection\" to ensure configuration is correct",
+      promptsTitle: "Context Menu Prompts",
+      promptsSubtitle: "Manage prompt options in the context menu",
+      addPrompt: "➕ Add Prompt",
+      resetPrompts: "🔄 Reset to Default Prompts",
+      editPrompt: "Edit",
+      deletePrompt: "Delete",
+      promptNamePlaceholder: "Prompt name",
+      promptTemplatePlaceholder: "Use {text} as placeholder",
+      savePrompt: "Save",
+      cancelEdit: "Cancel",
+      promptSaved: "Prompt saved",
+      promptDeleted: "Prompt deleted",
+      promptRequired: "Please fill in complete prompt name and template",
+      promptTextPlaceholder: "Prompt template must contain {text} placeholder",
+      promptMinRequired: "At least one prompt is required",
+      deletePromptConfirm: "Are you sure you want to delete this prompt?",
+      resetPromptsConfirm: "Are you sure you want to reset to default prompts? This will overwrite all custom prompts.",
+      promptsReset: "Reset to default prompts"
     }
   }
 };
