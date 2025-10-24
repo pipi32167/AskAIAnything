@@ -33,6 +33,21 @@
           <h3 id="historyTitle">历史记录</h3>
           <button id="clearAllHistory" class="clear-all-btn" title="">🗑️ <span id="clearAllText">清空</span></button>
         </div>
+        
+        <!-- 过滤器和搜索 -->
+        <div class="history-filters">
+          <div class="search-box">
+            <input type="text" id="historySearch" placeholder="搜索历史记录..." />
+            <button id="clearSearch" class="clear-search-btn" title="清空搜索">✕</button>
+          </div>
+          <div class="filter-box">
+            <select id="promptFilter">
+              <option value="">所有提示词</option>
+            </select>
+            <button id="clearFilters" class="clear-filters-btn" title="清空筛选">🔄</button>
+          </div>
+        </div>
+        
         <div id="historyAccordion" class="history-accordion">
           <!-- 历史记录将动态插入这里 -->
         </div>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>历史记录过滤测试</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .demo-controls {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    button {
+      margin: 5px;
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #e9ecef;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>历史记录过滤和搜索功能测试</h1>
+    
+    <div class="demo-controls">
+      <h3>演示功能</h3>
+      <button onclick="addSampleData()">添加示例数据</button>
+      <button onclick="clearSampleData()">清空数据</button>
+    </div>
+
+    <!-- 嵌入侧边栏组件进行测试 -->
+    <iframe src="sidebar.html" width="100%" height="600" style="border: 1px solid #ddd; border-radius: 6px;"></iframe>
+  </div>
+
+  <script>
+    function addSampleData() {
+      // 模拟添加一些测试数据到localStorage
+      const sampleHistory = [
+        {
+          text: "Hello World",
+          explanation: "这是一个经典的编程问候语",
+          timestamp: new Date().toLocaleString("zh-CN"),
+          promptName: "解释",
+          sourceInfo: "测试文本1",
+          pageUrl: "https://example.com",
+          pageTitle: "示例页面1"
+        },
+        {
+          text: "JavaScript是一种编程语言",
+          explanation: "JavaScript是一种高级的、解释型的编程语言，主要用于网页开发",
+          timestamp: new Date().toLocaleString("zh-CN"),
+          promptName: "翻译",
+          sourceInfo: "测试文本2",
+          pageUrl: "https://example.com/js",
+          pageTitle: "JavaScript教程"
+        },
+        {
+          text: "人工智能",
+          explanation: "人工智能（AI）是模拟人类智能的计算机系统",
+          timestamp: new Date().toLocaleString("zh-CN"),
+          promptName: "详细解释",
+          sourceInfo: "测试文本3",
+          pageUrl: "https://example.com/ai",
+          pageTitle: "AI简介"
+        },
+        {
+          text: "机器学习算法",
+          explanation: "机器学习是人工智能的一个分支，通过数据训练模型",
+          timestamp: new Date().toLocaleString("zh-CN"),
+          promptName: "翻译",
+          sourceInfo: "测试文本4",
+          pageUrl: "https://example.com/ml",
+          pageTitle: "机器学习"
+        }
+      ];
+
+      // 使用Chrome扩展API模拟存储
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.local.set({ history: sampleHistory }, () => {
+          alert('示例数据已添加！请刷新侧边栏查看效果。');
+        });
+      } else {
+        // 降级到localStorage用于测试
+        localStorage.setItem('testHistory', JSON.stringify(sampleHistory));
+        alert('示例数据已添加到localStorage！');
+      }
+    }
+
+    function clearSampleData() {
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        chrome.storage.local.set({ history: [] }, () => {
+          alert('数据已清空！');
+        });
+      } else {
+        localStorage.removeItem('testHistory');
+        alert('数据已清空！');
+      }
+    }
+  </script>
+</body>
+</html>

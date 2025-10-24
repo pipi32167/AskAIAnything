@@ -1,6 +1,7 @@
 // 侧边栏逻辑
 let currentText = "";
 let history = [];
+let filteredHistory = []; // 过滤后的历史记录
 let i18nInstance;
 let hasCurrentExplanation = false; // 标记是否有当前解释
 
@@ -35,6 +36,14 @@ function updateUILanguage() {
   document.getElementById("clearAllHistory").title = i18nInstance.t(
     "sidebar.clearAllConfirm"
   );
+  
+  // 更新搜索和过滤器的UI
+  document.getElementById("historySearch").placeholder = i18nInstance.t("sidebar.searchPlaceholder");
+  document.getElementById("clearSearch").title = i18nInstance.t("sidebar.clearSearch");
+  document.getElementById("clearFilters").title = i18nInstance.t("sidebar.clearFilters");
+  
+  // 更新提示词过滤器选项
+  updatePromptFilterOptions();
 }
 
 // 设置事件监听
@@ -54,6 +63,14 @@ function setupEventListeners() {
   document
     .getElementById("clearAllHistory")
     .addEventListener("click", clearAllHistory);
+
+  // 搜索框事件监听
+  document.getElementById("historySearch").addEventListener("input", filterHistory);
+  document.getElementById("clearSearch").addEventListener("click", clearSearch);
+
+  // 提示词过滤器事件监听
+  document.getElementById("promptFilter").addEventListener("change", filterHistory);
+  document.getElementById("clearFilters").addEventListener("click", clearFilters);
 
   // 接收来自content script的消息
   window.addEventListener("message", (event) => {
@@ -287,7 +304,8 @@ function addToHistory(
   chrome.storage.local.set({ history });
 
   // 更新UI
-  renderHistory();
+  updatePromptFilterOptions();
+  filterHistory(); // 重新应用当前的过滤条件
 }
 
 // 加载历史记录
@@ -295,6 +313,8 @@ async function loadHistory() {
   const data = await chrome.storage.local.get(["history"]);
   if (data.history) {
     history = data.history;
+    filteredHistory = [...history]; // 初始时显示所有历史记录
+    updatePromptFilterOptions();
     renderHistory();
   }
 }
@@ -311,7 +331,16 @@ function renderHistory() {
     return;
   }
 
-  history.forEach((item, index) => {
+  if (filteredHistory.length === 0) {
+    container.innerHTML = `<div class="no-history">${i18nInstance.t(
+      "sidebar.noFilterResults"
+    )}</div>`;
+    return;
+  }
+
+  filteredHistory.forEach((item, originalIndex) => {
+    // 找到原始历史记录中的索引
+    const index = history.findIndex(h => h === item);
     const accordionItem = document.createElement("div");
     accordionItem.className = "accordion-item";
 
@@ -432,7 +461,8 @@ function deleteHistoryItem(index) {
   if (confirm(i18nInstance.t("sidebar.deleteConfirm"))) {
     history.splice(index, 1);
     chrome.storage.local.set({ history });
-    renderHistory();
+    updatePromptFilterOptions();
+    filterHistory(); // 重新应用过滤条件
   }
 }
 
@@ -440,11 +470,83 @@ function deleteHistoryItem(index) {
 function clearAllHistory() {
   if (confirm(i18nInstance.t("sidebar.clearAllConfirm"))) {
     history = [];
+    filteredHistory = [];
     chrome.storage.local.set({ history });
+    updatePromptFilterOptions();
     renderHistory();
     // 如果没有当前解释，隐藏解释区域
     if (!hasCurrentExplanation) {
       hideCurrentExplanation();
     }
   }
+}
+
+// 更新提示词过滤器选项
+function updatePromptFilterOptions() {
+  const promptFilter = document.getElementById("promptFilter");
+  const currentValue = promptFilter.value;
+  
+  // 获取所有唯一的提示词名称
+  const promptNames = [...new Set(history.map(item => item.promptName).filter(Boolean))];
+  
+  // 清空现有选项
+  promptFilter.innerHTML = `<option value="">${i18nInstance.t("sidebar.allPrompts")}</option>`;
+  
+  // 添加提示词选项
+  promptNames.forEach(promptName => {
+    const option = document.createElement("option");
+    option.value = promptName;
+    option.textContent = promptName;
+    promptFilter.appendChild(option);
+  });
+  
+  // 恢复之前的选择（如果还存在）
+  if (currentValue && promptNames.includes(currentValue)) {
+    promptFilter.value = currentValue;
+  }
+}
+
+// 过滤历史记录
+function filterHistory() {
+  const searchQuery = document.getElementById("historySearch").value.toLowerCase().trim();
+  const selectedPrompt = document.getElementById("promptFilter").value;
+  
+  filteredHistory = history.filter(item => {
+    // 提示词过滤
+    if (selectedPrompt && item.promptName !== selectedPrompt) {
+      return false;
+    }
+    
+    // 关键词搜索（在文本内容和解释中搜索）
+    if (searchQuery) {
+      const searchableText = (
+        (item.text || '') + ' ' + 
+        (item.explanation || '') + ' ' + 
+        (item.promptName || '') + ' ' + 
+        (item.sourceInfo || '') + ' ' +
+        (item.pageTitle || '')
+      ).toLowerCase();
+      
+      if (!searchableText.includes(searchQuery)) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  renderHistory();
+}
+
+// 清空搜索
+function clearSearch() {
+  document.getElementById("historySearch").value = "";
+  filterHistory();
+}
+
+// 清空所有过滤器
+function clearFilters() {
+  document.getElementById("historySearch").value = "";
+  document.getElementById("promptFilter").value = "";
+  filterHistory();
 }

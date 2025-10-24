@@ -12,6 +12,11 @@ const translations = {
       history: "历史记录",
       clearAll: "清空",
       noHistory: "暂无历史记录",
+      noFilterResults: "没有符合条件的历史记录",
+      searchPlaceholder: "搜索历史记录...",
+      allPrompts: "所有提示词",
+      clearSearch: "清空搜索",
+      clearFilters: "清空筛选",
       deleteConfirm: "确定要删除这条历史记录吗？",
       clearAllConfirm: "确定要清空所有历史记录吗？此操作不可恢复。",
       configRequired: "请先配置API密钥。\n\n点击侧边栏右上角的 ⚙️ 设置按钮进行配置，或者点击浏览器工具栏中的扩展图标打开设置页面。\n\n配置后即可使用AI解释功能。\n\n选中的文字: \"{text}\""
@@ -97,6 +102,11 @@ const translations = {
       history: "History",
       clearAll: "Clear All",
       noHistory: "No history yet",
+      noFilterResults: "No history matches the current filter",
+      searchPlaceholder: "Search history...",
+      allPrompts: "All Prompts",
+      clearSearch: "Clear search",
+      clearFilters: "Clear filters",
       deleteConfirm: "Are you sure you want to delete this history item?",
       clearAllConfirm: "Are you sure you want to clear all history? This action cannot be undone.",
       configRequired: "Please configure API key first.\n\nClick the ⚙️ Settings button in the sidebar, or click the extension icon in the browser toolbar.\n\nYou can use AI explanation after configuration.\n\nSelected text: \"{text}\""
