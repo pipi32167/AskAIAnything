@@ -334,27 +334,31 @@ async function loadHistory() {
 // 渲染历史记录
 function renderHistory() {
   const container = document.getElementById("historyAccordion");
+  if (!container) {
+    console.error("historyAccordion container not found");
+    return;
+  }
+  
   container.innerHTML = "";
 
   if (history.length === 0) {
-    container.innerHTML = `<div class="no-history">${i18nInstance.t(
-      "sidebar.noHistory"
-    )}</div>`;
+    const noHistoryText = i18nInstance?.t("sidebar.noHistory") || "暂无历史记录";
+    container.innerHTML = `<div class="no-history">${noHistoryText}</div>`;
     return;
   }
 
   if (filteredHistory.length === 0) {
-    container.innerHTML = `<div class="no-history">${i18nInstance.t(
-      "sidebar.noFilterResults"
-    )}</div>`;
+    const noFilterResultsText = i18nInstance?.t("sidebar.noFilterResults") || "无匹配结果";
+    container.innerHTML = `<div class="no-history">${noFilterResultsText}</div>`;
     return;
   }
 
   filteredHistory.forEach((item, originalIndex) => {
-    // 找到原始历史记录中的索引
-    const index = history.findIndex((h) => h === item);
-    const accordionItem = document.createElement("div");
-    accordionItem.className = "accordion-item";
+    try {
+      // 找到原始历史记录中的索引
+      const index = history.findIndex((h) => h === item);
+      const accordionItem = document.createElement("div");
+      accordionItem.className = "accordion-item";
 
     const header = document.createElement("div");
     header.className = "accordion-header";
@@ -410,6 +414,8 @@ function renderHistory() {
     `
       : "";
 
+    const copyMarkdownText = i18nInstance?.t("sidebar.copyMarkdown") || "复制 Markdown";
+    
     content.innerHTML = `
       <div class="history-timestamp">${item.timestamp}</div>
       ${urlDisplay}
@@ -419,25 +425,27 @@ function renderHistory() {
       <div class="history-explanation"><strong>解释：</strong>${explanationHTML}</div>
       <div class="history-actions">
         <button class="view-in-main-btn" data-index="${index}">📌 在主区域查看</button>
-        <button class="copy-markdown-btn" data-index="${index}">📋 ${i18nInstance.t(
-      "sidebar.copyMarkdown"
-    )}</button>
+        <button class="copy-markdown-btn" data-index="${index}">📋 ${copyMarkdownText}</button>
       </div>
     `;
 
     // 查看在主区域按钮
     const viewBtn = content.querySelector(".view-in-main-btn");
-    viewBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      loadHistoryToMain(item);
-    });
+    if (viewBtn) {
+      viewBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        loadHistoryToMain(item);
+      });
+    }
 
     // 复制 Markdown 按钮
     const copyBtn = content.querySelector(".copy-markdown-btn");
-    copyBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      copyHistoryAsMarkdown(item);
-    });
+    if (copyBtn) {
+      copyBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        copyHistoryAsMarkdown(item);
+      });
+    }
 
     header.addEventListener("click", () => {
       const isOpen = accordionItem.classList.contains("open");
@@ -451,9 +459,12 @@ function renderHistory() {
       }
     });
 
-    accordionItem.appendChild(header);
-    accordionItem.appendChild(content);
-    container.appendChild(accordionItem);
+      accordionItem.appendChild(header);
+      accordionItem.appendChild(content);
+      container.appendChild(accordionItem);
+    } catch (error) {
+      console.error("Error rendering history item:", error, item);
+    }
   });
 }
 
@@ -465,11 +476,14 @@ function loadHistoryToMain(item) {
 
   // 更新侧边栏标题
   const titleElement = document.getElementById("sidebarTitle");
-  if (item.promptName && item.sourceInfo) {
-    titleElement.textContent = `${item.promptName} - ${item.sourceInfo}`;
-    titleElement.title = `${item.promptName} - ${item.sourceInfo}`;
-  } else {
-    titleElement.textContent = i18nInstance.t("sidebar.title");
+  if (titleElement) {
+    if (item.promptName && item.sourceInfo) {
+      titleElement.textContent = `${item.promptName} - ${item.sourceInfo}`;
+      titleElement.title = `${item.promptName} - ${item.sourceInfo}`;
+    } else {
+      const sidebarTitle = i18nInstance?.t("sidebar.title") || "Ask Me Anything";
+      titleElement.textContent = sidebarTitle;
+    }
   }
 
   const selectedTextElement = document.getElementById("currentSelectedText");
