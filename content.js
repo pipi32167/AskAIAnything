@@ -8,12 +8,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       message.text,
       message.promptTemplate,
       message.promptName,
-      "selection"
+      "selection",
+      message.promptConfig
     );
   } else if (message.action === "explainPage") {
     // 提取整个页面的文本内容
     const pageText = extractPageText();
-    showSidebar(pageText, message.promptTemplate, message.promptName, "page");
+    showSidebar(
+      pageText,
+      message.promptTemplate,
+      message.promptName,
+      "page",
+      message.promptConfig
+    );
   } else if (message.action === "toggleSidebar") {
     toggleSidebar();
   }
@@ -45,7 +52,13 @@ function toggleSidebar() {
 }
 
 // 显示侧边栏
-function showSidebar(text, promptTemplate, promptName, contextType) {
+function showSidebar(
+  text,
+  promptTemplate,
+  promptName,
+  contextType,
+  promptConfig
+) {
   // 如果侧边栏不存在，创建它
   if (!sidebarIframe) {
     createSidebar();
@@ -76,6 +89,7 @@ function showSidebar(text, promptTemplate, promptName, contextType) {
         contextType: contextType,
         pageUrl: pageUrl,
         pageTitle: pageTitle,
+        promptConfig: promptConfig,
       },
       "*"
     );

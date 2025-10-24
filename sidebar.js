@@ -65,7 +65,8 @@ function setupEventListeners() {
         event.data.sourceInfo,
         event.data.contextType,
         event.data.pageUrl,
-        event.data.pageTitle
+        event.data.pageTitle,
+        event.data.promptConfig
       );
     } else if (event.data.action === "reset") {
       hideCurrentExplanation();
@@ -81,7 +82,8 @@ async function handleExplainRequest(
   sourceInfo,
   contextType,
   pageUrl,
-  pageTitle
+  pageTitle,
+  promptConfig
 ) {
   currentText = text;
   hasCurrentExplanation = true;
@@ -107,8 +109,8 @@ async function handleExplainRequest(
   )}</div>`;
 
   try {
-    // 调用AI API - 使用自定义提示词（如果提供）
-    const explanation = await callAI(text, customPromptTemplate);
+    // 调用AI API - 使用自定义提示词和配置（如果提供）
+    const explanation = await callAI(text, customPromptTemplate, promptConfig);
 
     // 显示解释 - 支持Markdown渲染
     displayExplanation(explanation);
@@ -161,7 +163,7 @@ function displayExplanation(text) {
 }
 
 // 调用AI API
-async function callAI(text, customPromptTemplate) {
+async function callAI(text, customPromptTemplate, promptConfig) {
   // 从storage获取API配置
   const config = await chrome.storage.sync.get([
     "apiKey",
@@ -177,10 +179,19 @@ async function callAI(text, customPromptTemplate) {
     return i18nInstance.t("sidebar.configRequired", { text });
   }
 
-  // 使用自定义提示词或默认提示词
-  const systemPrompt =
+  // 使用提示词特定的系统提示词，或默认提示词
+  let systemPrompt =
     config.systemPrompt ||
     "你是一个专业的语言助手，擅长解释文字的含义、上下文和用法。请用简洁清晰的中文回答。";
+
+  // 如果提示词配置中指定了系统提示词，且不是"default"，则使用它
+  if (
+    promptConfig &&
+    promptConfig.systemPrompt &&
+    promptConfig.systemPrompt !== "default"
+  ) {
+    systemPrompt = promptConfig.systemPrompt;
+  }
 
   // 优先使用右键菜单传递的提示词，否则使用设置中的提示词模板
   const userPromptTemplate =
@@ -188,6 +199,26 @@ async function callAI(text, customPromptTemplate) {
     config.userPromptTemplate ||
     "请解释以下文字的含义：\n\n{text}";
   const userPrompt = userPromptTemplate.replace("{text}", text);
+
+  // 确定使用的模型
+  let apiModel = config.apiModel || "gpt-3.5-turbo";
+  if (
+    promptConfig &&
+    promptConfig.apiModel &&
+    promptConfig.apiModel !== "default"
+  ) {
+    apiModel = promptConfig.apiModel;
+  }
+
+  // 确定使用的最大token数
+  let maxTokens = config.maxTokens || 500;
+  if (
+    promptConfig &&
+    promptConfig.maxTokens &&
+    promptConfig.maxTokens !== "default"
+  ) {
+    maxTokens = parseInt(promptConfig.maxTokens) || 500;
+  }
 
   // 调用API
   const response = await fetch(
@@ -199,7 +230,7 @@ async function callAI(text, customPromptTemplate) {
         Authorization: `Bearer ${config.apiKey}`,
       },
       body: JSON.stringify({
-        model: config.apiModel || "gpt-3.5-turbo",
+        model: apiModel,
         messages: [
           {
             role: "system",
@@ -211,7 +242,7 @@ async function callAI(text, customPromptTemplate) {
           },
         ],
         temperature: 0.7,
-        max_tokens: config.maxTokens || 500,
+        max_tokens: maxTokens,
       }),
     }
   );

@@ -499,6 +499,83 @@ textarea:focus {
   margin-bottom: 12px;
 }
 
+/* 提示词编辑表单样式 */
+.prompt-edit-form {
+  background: #F8FAFB;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #E3F2FD;
+}
+
+.form-row {
+  margin-bottom: 12px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2C3E50;
+  margin-bottom: 4px;
+}
+
+.prompt-model-select,
+.prompt-tokens-select,
+.prompt-system-select {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #D6EAF8;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #2C3E50;
+  background: white;
+}
+
+.prompt-custom-model,
+.prompt-custom-tokens {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #D6EAF8;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #2C3E50;
+  background: white;
+}
+
+.prompt-system-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #D6EAF8;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #2C3E50;
+  background: white;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.prompt-custom-model:focus,
+.prompt-custom-tokens:focus,
+.prompt-system-input:focus,
+.prompt-model-select:focus,
+.prompt-tokens-select:focus,
+.prompt-system-select:focus {
+  outline: none;
+  border-color: #5DADE2;
+  box-shadow: 0 0 0 2px rgba(93, 173, 226, 0.2);
+}
+
+/* 提示词配置信息显示 */
+.prompt-config-info {
+  font-size: 11px;
+  color: #5D6D7E;
+  background: #F8F9FA;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin: 4px 0 8px 0;
+  border-left: 3px solid #5DADE2;
+}
+
 .prompt-context-select:focus {
   outline: none;
   border-color: #5DADE2;

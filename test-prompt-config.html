@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>提示词配置功能测试 - Ask Me Anything Extension</title>
+</head>
+
+<body>
+  <h1>提示词配置功能测试页面</h1>
+
+  <h2>功能测试说明</h2>
+  <p>这个页面用于测试Ask Me Anything扩展的新功能：<strong>每个提示词支持选择模型、系统提示词、最大token</strong></p>
+
+  <h3>测试步骤</h3>
+  <ol>
+    <li>安装或更新Ask Me Anything扩展</li>
+    <li>打开扩展设置页面</li>
+    <li>编辑任意一个提示词，查看新的配置选项：
+      <ul>
+        <li>AI模型选择（默认/GPT-4/GPT-3.5-turbo/自定义）</li>
+        <li>最大Token设置（默认/200/500/1000/2000/自定义）</li>
+        <li>系统提示词（默认/自定义）</li>
+      </ul>
+    </li>
+    <li>配置不同的设置并保存</li>
+    <li>选择这段文字进行测试，验证配置是否生效</li>
+  </ol>
+
+  <h3>测试文本</h3>
+  <p class="test-text">选择这段文字来测试扩展的新功能。你可以尝试用不同配置的提示词来解释这段文字，观察AI使用的模型、系统提示词和响应长度是否符合你的配置。</p>
+
+  <h3>预期效果</h3>
+  <ul>
+    <li>✅ 提示词列表显示配置信息（如：🔧 模型: gpt-4 • Token: 1000 • 自定义系统提示词）</li>
+    <li>✅ 编辑界面显示所有配置选项</li>
+    <li>✅ 使用不同提示词时，AI调用使用对应的配置</li>
+    <li>✅ "使用全局设置"选项正常工作</li>
+    <li>✅ 旧的提示词自动升级兼容</li>
+  </ul>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .test-text {
+      background: #f0f8ff;
+      padding: 15px;
+      border-left: 4px solid #2196F3;
+      margin: 20px 0;
+      font-weight: 500;
+    }
+
+    h1 {
+      color: #2C3E50;
+    }
+
+    h2 {
+      color: #3498DB;
+    }
+
+    h3 {
+      color: #5D6D7E;
+    }
+
+    ul,
+    ol {
+      margin: 10px 0;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+  </style>
+</body>
+
+</html>
