@@ -19,6 +19,9 @@ const translations = {
       clearFilters: "清空筛选",
       deleteConfirm: "确定要删除这条历史记录吗？",
       clearAllConfirm: "确定要清空所有历史记录吗？此操作不可恢复。",
+      copyMarkdown: "复制 Markdown",
+      copySuccess: "已复制 Markdown 格式到剪贴板",
+      copyFailed: "复制失败，请手动复制内容",
       configRequired:
         '请先配置API密钥。\n\n点击侧边栏右上角的 ⚙️ 设置按钮进行配置，或者点击浏览器工具栏中的扩展图标打开设置页面。\n\n配置后即可使用AI解释功能。\n\n选中的文字: "{text}"',
     },
@@ -113,6 +116,9 @@ const translations = {
       deleteConfirm: "Are you sure you want to delete this history item?",
       clearAllConfirm:
         "Are you sure you want to clear all history? This action cannot be undone.",
+      copyMarkdown: "Copy Markdown",
+      copySuccess: "Markdown format copied to clipboard",
+      copyFailed: "Copy failed, please copy manually",
       configRequired:
         'Please configure API key first.\n\nClick the ⚙️ Settings button in the sidebar, or click the extension icon in the browser toolbar.\n\nYou can use AI explanation after configuration.\n\nSelected text: "{text}"',
     },
