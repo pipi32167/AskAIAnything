@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "AI Text Explainer",
+  "version": "1.0.0",
+  "description": "选择文字，使用AI解释含义，在侧边栏显示结果和历史记录",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab"
+  ],
+  "action": {
+    "default_popup": "settings.html",
+    "default_title": "AI Text Explainer - 设置"
+  },
+  "options_page": "settings.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["sidebar.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sidebar.html",
+        "sidebar.js",
+        "sidebar.css",
+        "i18n.js",
+        "_locales/zh/messages.json",
+        "_locales/en/messages.json"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "default_locale": "zh"
+}

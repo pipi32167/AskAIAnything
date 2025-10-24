@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置 - AI Text Explainer</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="settings-container">
+    <div class="settings-header">
+      <h1>API 配置</h1>
+      <p class="subtitle">配置你的AI服务提供商</p>
+    </div>
+
+    <form id="settingsForm" class="settings-form">
+      <div class="form-group">
+        <label for="apiEndpoint">
+          <span class="label-text">API 端点 (Base URL)</span>
+          <span class="label-required">*</span>
+        </label>
+        <input
+          type="text"
+          id="apiEndpoint"
+          name="apiEndpoint"
+          placeholder="https://api.openai.com/v1/chat/completions"
+          required
+        >
+        <small class="help-text">例如: https://api.openai.com/v1/chat/completions</small>
+      </div>
+
+      <div class="form-group">
+        <label for="apiKey">
+          <span class="label-text">API 密钥</span>
+          <span class="label-required">*</span>
+        </label>
+        <div class="input-with-toggle">
+          <input
+            type="password"
+            id="apiKey"
+            name="apiKey"
+            placeholder="sk-..."
+            required
+          >
+          <button type="button" id="toggleKeyVisibility" class="toggle-btn" title="显示/隐藏密钥">
+            👁️
+          </button>
+        </div>
+        <small class="help-text">你的API密钥将安全地保存在浏览器本地</small>
+      </div>
+
+      <div class="form-group">
+        <label for="apiModel">
+          <span class="label-text">模型</span>
+          <span class="label-required">*</span>
+        </label>
+        <select id="apiModel" name="apiModel" required>
+          <option value="">-- 选择模型 --</option>
+          <optgroup label="OpenAI">
+            <option value="gpt-4">GPT-4</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            <option value="gpt-3.5-turbo" selected>GPT-3.5 Turbo (推荐)</option>
+          </optgroup>
+          <optgroup label="自定义">
+            <option value="custom">自定义模型名称</option>
+          </optgroup>
+        </select>
+        <input
+          type="text"
+          id="customModel"
+          name="customModel"
+          placeholder="输入自定义模型名称"
+          style="display: none; margin-top: 8px;"
+        >
+        <small class="help-text">选择要使用的AI模型</small>
+      </div>
+
+      <div class="form-group">
+        <label for="maxTokens">
+          <span class="label-text">最大Token数</span>
+        </label>
+        <input
+          type="number"
+          id="maxTokens"
+          name="maxTokens"
+          value="500"
+          min="100"
+          max="4000"
+          step="100"
+        >
+        <small class="help-text">控制AI响应的长度 (100-4000)</small>
+      </div>
+
+      <div class="form-group">
+        <label for="systemPrompt">
+          <span class="label-text">系统提示词 (System Prompt)</span>
+        </label>
+        <textarea
+          id="systemPrompt"
+          name="systemPrompt"
+          rows="4"
+          placeholder="你是一个专业的语言助手，擅长解释文字的含义、上下文和用法。请用简洁清晰的中文回答。"
+        ></textarea>
+        <small class="help-text">自定义AI的回答风格和角色，留空则使用默认提示词</small>
+      </div>
+
+      <div class="form-group">
+        <label for="userPromptTemplate">
+          <span class="label-text">用户提示词模板</span>
+        </label>
+        <textarea
+          id="userPromptTemplate"
+          name="userPromptTemplate"
+          rows="3"
+          placeholder="请解释以下文字的含义：&#10;&#10;{text}"
+        ></textarea>
+        <small class="help-text">使用 {text} 作为占位符代表选中的文字，留空则使用默认模板</small>
+      </div>
+
+      <div class="form-group">
+        <label for="language">
+          <span class="label-text" id="languageLabel">界面语言</span>
+        </label>
+        <select id="language" name="language">
+          <option value="zh">简体中文</option>
+          <option value="en">English</option>
+        </select>
+        <small class="help-text" id="languageHelp">选择界面显示语言</small>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          💾 保存配置
+        </button>
+        <button type="button" id="testConnection" class="btn btn-secondary">
+          🔍 测试连接
+        </button>
+        <button type="button" id="resetSettings" class="btn btn-danger">
+          🔄 恢复默认
+        </button>
+      </div>
+    </form>
+
+    <div id="statusMessage" class="status-message" style="display: none;"></div>
+
+    <div class="presets-section">
+      <h2>快速配置</h2>
+      <p class="presets-subtitle">点击下方按钮快速填充常见AI服务的配置</p>
+
+      <div class="preset-buttons">
+        <button class="preset-btn" data-preset="openai">
+          <span class="preset-icon">🤖</span>
+          <span class="preset-name">OpenAI</span>
+        </button>
+        <button class="preset-btn" data-preset="azure">
+          <span class="preset-icon">☁️</span>
+          <span class="preset-name">Azure OpenAI</span>
+        </button>
+        <button class="preset-btn" data-preset="zhipu">
+          <span class="preset-icon">🧠</span>
+          <span class="preset-name">智谱 AI</span>
+        </button>
+        <button class="preset-btn" data-preset="tongyi">
+          <span class="preset-icon">🌟</span>
+          <span class="preset-name">通义千问</span>
+        </button>
+      </div>
+
+      <div class="info-box">
+        <strong>💡 提示：</strong>
+        <ul>
+          <li>配置将自动同步到你的Chrome账号</li>
+          <li>API密钥安全地保存在本地，不会上传到任何服务器</li>
+          <li>使用"测试连接"确保配置正确</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

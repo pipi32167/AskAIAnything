@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Text Explainer</title>
+  <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+  <div class="sidebar-container">
+    <div class="sidebar-header">
+      <h2 id="sidebarTitle">AI 文字解释</h2>
+      <div class="header-actions">
+        <button id="openSettings" class="settings-btn" title="">⚙️</button>
+        <button id="closeSidebar" class="close-btn">&times;</button>
+      </div>
+    </div>
+
+    <div class="sidebar-content">
+      <!-- 当前解释内容 -->
+      <div class="current-explanation">
+        <div class="selected-text-label" id="selectedTextLabel">选中文字：</div>
+        <div id="currentSelectedText" class="selected-text"></div>
+        <div class="explanation-label" id="explanationLabel">AI 解释：</div>
+        <div id="currentExplanation" class="explanation-content">
+          <div class="loading" id="loadingText">正在分析中...</div>
+        </div>
+      </div>
+
+      <!-- 历史记录 -->
+      <div class="history-section">
+        <div class="history-header">
+          <h3 id="historyTitle">历史记录</h3>
+          <button id="clearAllHistory" class="clear-all-btn" title="">🗑️ <span id="clearAllText">清空</span></button>
+        </div>
+        <div id="historyAccordion" class="history-accordion">
+          <!-- 历史记录将动态插入这里 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="sidebar.js"></script>
+</body>
+</html>
