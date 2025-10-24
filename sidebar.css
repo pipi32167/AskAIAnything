@@ -33,6 +33,11 @@ body {
 .sidebar-header h2 {
   font-size: 18px;
   font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
 }
 
 .header-actions {
@@ -105,6 +110,13 @@ body {
   font-size: 15px;
   line-height: 1.5;
   color: #2C3E50;
+
+  /* 限制为一行 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: block;
 }
 
 .explanation-content {
@@ -281,6 +293,13 @@ body {
   background: #f8f9fa;
   border-radius: 4px;
   font-size: 13px;
+
+  /* 限制为一行 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: block;
 }
 
 .history-explanation {

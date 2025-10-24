@@ -112,7 +112,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       chrome.tabs.sendMessage(tab.id, {
         action: contextType === 'page' ? "explainPage" : "explainText",
         text: contextType === 'page' ? null : info.selectionText,
-        promptTemplate: prompt.userPromptTemplate
+        promptTemplate: prompt.userPromptTemplate,
+        promptName: prompt.name // 传递提示词名称
       });
     }
   }

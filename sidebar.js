@@ -44,7 +44,13 @@ function setupEventListeners() {
   // 接收来自content script的消息
   window.addEventListener('message', (event) => {
     if (event.data.action === 'explainText') {
-      handleExplainRequest(event.data.text, event.data.promptTemplate);
+      handleExplainRequest(
+        event.data.text,
+        event.data.promptTemplate,
+        event.data.promptName,
+        event.data.sourceInfo,
+        event.data.contextType
+      );
     } else if (event.data.action === 'reset') {
       hideCurrentExplanation();
     }
@@ -52,12 +58,24 @@ function setupEventListeners() {
 }
 
 // 处理解释请求
-async function handleExplainRequest(text, customPromptTemplate) {
+async function handleExplainRequest(text, customPromptTemplate, promptName, sourceInfo, contextType) {
   currentText = text;
   hasCurrentExplanation = true;
   showCurrentExplanation(); // 显示当前解释区域
 
-  document.getElementById('currentSelectedText').textContent = text;
+  // 更新侧边栏标题
+  const titleElement = document.getElementById('sidebarTitle');
+  if (promptName && sourceInfo) {
+    titleElement.textContent = `${promptName} - ${sourceInfo}`;
+    titleElement.title = `${promptName} - ${sourceInfo}`; // 完整标题作为 tooltip
+  } else {
+    titleElement.textContent = i18nInstance.t('sidebar.title');
+  }
+
+  const selectedTextElement = document.getElementById('currentSelectedText');
+  selectedTextElement.textContent = text;
+  selectedTextElement.title = text; // 添加title以显示完整内容
+
   document.getElementById('currentExplanation').innerHTML = `<div class="loading">${i18nInstance.t('sidebar.analyzing')}</div>`;
 
   try {
@@ -68,7 +86,7 @@ async function handleExplainRequest(text, customPromptTemplate) {
     displayExplanation(explanation);
 
     // 保存到历史记录
-    addToHistory(text, explanation);
+    addToHistory(text, explanation, promptName, sourceInfo);
   } catch (error) {
     document.getElementById('currentExplanation').innerHTML =
       `<div class="error">${i18nInstance.t('sidebar.error')} ${error.message}</div>`;
@@ -163,12 +181,14 @@ async function callAI(text, customPromptTemplate) {
 }
 
 // 添加到历史记录
-function addToHistory(text, explanation) {
+function addToHistory(text, explanation, promptName, sourceInfo) {
   const timestamp = new Date().toLocaleString('zh-CN');
   const historyItem = {
     text,
     explanation,
-    timestamp
+    timestamp,
+    promptName: promptName || '解释',
+    sourceInfo: sourceInfo || text.substring(0, 30) + (text.length > 30 ? '...' : '')
   };
 
   history.unshift(historyItem); // 添加到开头
@@ -213,9 +233,14 @@ function renderHistory() {
 
     const headerText = document.createElement('span');
     headerText.className = 'accordion-header-text';
-    headerText.textContent = item.text.length > 30
-      ? item.text.substring(0, 30) + '...'
-      : item.text;
+
+    // 显示提示词名称和来源信息
+    const displayName = item.promptName && item.sourceInfo
+      ? `${item.promptName} - ${item.sourceInfo}`
+      : (item.text.length > 30 ? item.text.substring(0, 30) + '...' : item.text);
+
+    headerText.textContent = displayName;
+    headerText.title = displayName; // 完整标题作为 tooltip
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-history-btn';
@@ -239,7 +264,7 @@ function renderHistory() {
 
     content.innerHTML = `
       <div class="history-timestamp">${item.timestamp}</div>
-      <div class="history-text"><strong>文字：</strong>${item.text}</div>
+      <div class="history-text" title="${item.text}"><strong>文字：</strong>${item.text}</div>
       <div class="history-explanation"><strong>解释：</strong>${explanationHTML}</div>
       <button class="view-in-main-btn" data-index="${index}">📌 在主区域查看</button>
     `;
@@ -275,7 +300,19 @@ function loadHistoryToMain(item) {
   hasCurrentExplanation = true;
   showCurrentExplanation();
 
-  document.getElementById('currentSelectedText').textContent = item.text;
+  // 更新侧边栏标题
+  const titleElement = document.getElementById('sidebarTitle');
+  if (item.promptName && item.sourceInfo) {
+    titleElement.textContent = `${item.promptName} - ${item.sourceInfo}`;
+    titleElement.title = `${item.promptName} - ${item.sourceInfo}`;
+  } else {
+    titleElement.textContent = i18nInstance.t('sidebar.title');
+  }
+
+  const selectedTextElement = document.getElementById('currentSelectedText');
+  selectedTextElement.textContent = item.text;
+  selectedTextElement.title = item.text; // 添加title以显示完整内容
+
   displayExplanation(item.explanation);
 
   // 滚动到顶部
