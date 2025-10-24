@@ -338,17 +338,19 @@ function renderHistory() {
     console.error("historyAccordion container not found");
     return;
   }
-  
+
   container.innerHTML = "";
 
   if (history.length === 0) {
-    const noHistoryText = i18nInstance?.t("sidebar.noHistory") || "暂无历史记录";
+    const noHistoryText =
+      i18nInstance?.t("sidebar.noHistory") || "暂无历史记录";
     container.innerHTML = `<div class="no-history">${noHistoryText}</div>`;
     return;
   }
 
   if (filteredHistory.length === 0) {
-    const noFilterResultsText = i18nInstance?.t("sidebar.noFilterResults") || "无匹配结果";
+    const noFilterResultsText =
+      i18nInstance?.t("sidebar.noFilterResults") || "无匹配结果";
     container.innerHTML = `<div class="no-history">${noFilterResultsText}</div>`;
     return;
   }
@@ -360,51 +362,51 @@ function renderHistory() {
       const accordionItem = document.createElement("div");
       accordionItem.className = "accordion-item";
 
-    const header = document.createElement("div");
-    header.className = "accordion-header";
+      const header = document.createElement("div");
+      header.className = "accordion-header";
 
-    const headerText = document.createElement("span");
-    headerText.className = "accordion-header-text";
+      const headerText = document.createElement("span");
+      headerText.className = "accordion-header-text";
 
-    // 显示提示词名称和来源信息
-    const displayName =
-      item.promptName && item.sourceInfo
-        ? `${item.promptName} - ${item.sourceInfo}`
-        : item.text.length > 30
-        ? item.text.substring(0, 30) + "..."
-        : item.text;
+      // 显示提示词名称和来源信息
+      const displayName =
+        item.promptName && item.sourceInfo
+          ? `${item.promptName} - ${item.sourceInfo}`
+          : item.text.length > 30
+          ? item.text.substring(0, 30) + "..."
+          : item.text;
 
-    headerText.textContent = displayName;
-    headerText.title = displayName; // 完整标题作为 tooltip
+      headerText.textContent = displayName;
+      headerText.title = displayName; // 完整标题作为 tooltip
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "delete-history-btn";
-    deleteBtn.innerHTML = "🗑️";
-    deleteBtn.title = "删除此记录";
-    deleteBtn.addEventListener("click", (e) => {
-      e.stopPropagation(); // 防止触发accordion展开
-      deleteHistoryItem(index);
-    });
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-history-btn";
+      deleteBtn.innerHTML = "🗑️";
+      deleteBtn.title = "删除此记录";
+      deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // 防止触发accordion展开
+        deleteHistoryItem(index);
+      });
 
-    header.appendChild(headerText);
-    header.appendChild(deleteBtn);
+      header.appendChild(headerText);
+      header.appendChild(deleteBtn);
 
-    const content = document.createElement("div");
-    content.className = "accordion-content";
+      const content = document.createElement("div");
+      content.className = "accordion-content";
 
-    // 渲染历史记录的解释（支持Markdown）
-    const explanationHTML = markdownParser.hasMarkdown(item.explanation)
-      ? `<div class="markdown-content">${markdownParser.parse(
-          item.explanation
-        )}</div>`
-      : `<div class="plain-text">${item.explanation.replace(
-          /\n/g,
-          "<br>"
-        )}</div>`;
+      // 渲染历史记录的解释（支持Markdown）
+      const explanationHTML = markdownParser.hasMarkdown(item.explanation)
+        ? `<div class="markdown-content">${markdownParser.parse(
+            item.explanation
+          )}</div>`
+        : `<div class="plain-text">${item.explanation.replace(
+            /\n/g,
+            "<br>"
+          )}</div>`;
 
-    // 构建URL显示内容
-    const urlDisplay = item.pageUrl
-      ? `
+      // 构建URL显示内容
+      const urlDisplay = item.pageUrl
+        ? `
       <div class="history-url">
         <strong>来源：</strong>
         <a href="${item.pageUrl}" target="_blank" title="${item.pageUrl}">
@@ -412,16 +414,15 @@ function renderHistory() {
         </a>
       </div>
     `
-      : "";
+        : "";
 
-    const copyMarkdownText = i18nInstance?.t("sidebar.copyMarkdown") || "复制 Markdown";
-    
-    content.innerHTML = `
+      const copyMarkdownText =
+        i18nInstance?.t("sidebar.copyMarkdown") || "复制 Markdown";
+
+      content.innerHTML = `
       <div class="history-timestamp">${item.timestamp}</div>
       ${urlDisplay}
-      <div class="history-text" title="${item.text}"><strong>文字：</strong>${
-      item.text
-    }</div>
+      <div class="history-text" title="${item.text}"><strong>文字：</strong>${item.text}</div>
       <div class="history-explanation"><strong>解释：</strong>${explanationHTML}</div>
       <div class="history-actions">
         <button class="view-in-main-btn" data-index="${index}">📌 在主区域查看</button>
@@ -429,35 +430,35 @@ function renderHistory() {
       </div>
     `;
 
-    // 查看在主区域按钮
-    const viewBtn = content.querySelector(".view-in-main-btn");
-    if (viewBtn) {
-      viewBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        loadHistoryToMain(item);
-      });
-    }
-
-    // 复制 Markdown 按钮
-    const copyBtn = content.querySelector(".copy-markdown-btn");
-    if (copyBtn) {
-      copyBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        copyHistoryAsMarkdown(item);
-      });
-    }
-
-    header.addEventListener("click", () => {
-      const isOpen = accordionItem.classList.contains("open");
-      // 关闭所有其他项
-      document.querySelectorAll(".accordion-item").forEach((el) => {
-        el.classList.remove("open");
-      });
-      // 切换当前项
-      if (!isOpen) {
-        accordionItem.classList.add("open");
+      // 查看在主区域按钮
+      const viewBtn = content.querySelector(".view-in-main-btn");
+      if (viewBtn) {
+        viewBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          loadHistoryToMain(item);
+        });
       }
-    });
+
+      // 复制 Markdown 按钮
+      const copyBtn = content.querySelector(".copy-markdown-btn");
+      if (copyBtn) {
+        copyBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          copyHistoryAsMarkdown(item);
+        });
+      }
+
+      header.addEventListener("click", () => {
+        const isOpen = accordionItem.classList.contains("open");
+        // 关闭所有其他项
+        document.querySelectorAll(".accordion-item").forEach((el) => {
+          el.classList.remove("open");
+        });
+        // 切换当前项
+        if (!isOpen) {
+          accordionItem.classList.add("open");
+        }
+      });
 
       accordionItem.appendChild(header);
       accordionItem.appendChild(content);
@@ -481,7 +482,8 @@ function loadHistoryToMain(item) {
       titleElement.textContent = `${item.promptName} - ${item.sourceInfo}`;
       titleElement.title = `${item.promptName} - ${item.sourceInfo}`;
     } else {
-      const sidebarTitle = i18nInstance?.t("sidebar.title") || "Ask Me Anything";
+      const sidebarTitle =
+        i18nInstance?.t("sidebar.title") || "Ask Me Anything";
       titleElement.textContent = sidebarTitle;
     }
   }
