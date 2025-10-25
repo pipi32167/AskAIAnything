@@ -714,7 +714,13 @@ function startEditPrompt(index) {
     prompt.userPromptTemplate
   }</textarea>
       </div>
-      
+
+      <div class="form-row">
+        <button class="ai-optimize-btn" title="使用AI优化此提示词">
+          🤖 AI优化提示词
+        </button>
+      </div>
+
       <div class="prompt-edit-actions">
         <button class="cancel-btn">${cancelText}</button>
         <button class="save-btn">${saveText}</button>
@@ -733,6 +739,7 @@ function startEditPrompt(index) {
   const systemInput = promptItem.querySelector(".prompt-system-input");
   const cancelBtn = promptItem.querySelector(".cancel-btn");
   const saveBtn = promptItem.querySelector(".save-btn");
+  const aiOptimizeBtn = promptItem.querySelector(".ai-optimize-btn");
 
   nameInput.focus();
 
@@ -755,6 +762,12 @@ function startEditPrompt(index) {
   });
 
   cancelBtn.addEventListener("click", () => renderPrompts());
+
+  // AI优化提示词按钮事件
+  aiOptimizeBtn.addEventListener("click", () => {
+    aiOptimizePrompt(templateInput, aiOptimizeBtn);
+  });
+
   saveBtn.addEventListener("click", () => {
     const promptConfig = collectPromptConfig(promptItem);
     savePrompt(
@@ -889,5 +902,99 @@ async function handleResetPrompts() {
 
     // 刷新右键菜单
     chrome.runtime.sendMessage({ action: "refreshContextMenu" });
+  }
+}
+
+// AI优化提示词功能
+async function aiOptimizePrompt(templateTextarea, buttonElement) {
+  const originalText = buttonElement.textContent;
+  const currentPrompt = templateTextarea.value.trim();
+
+  if (!currentPrompt) {
+    showStatus("请先输入提示词内容", "error");
+    return;
+  }
+
+  // 显示加载状态
+  buttonElement.textContent = "🔄 优化中...";
+  buttonElement.disabled = true;
+
+  try {
+    // 获取API配置
+    const config = await chrome.storage.sync.get([
+      "apiKey",
+      "apiEndpoint",
+      "apiModel",
+      "maxTokens",
+    ]);
+
+    if (!config.apiKey) {
+      throw new Error("请先配置API密钥");
+    }
+
+    // 构建AI优化请求
+    const optimizationPrompt = `请帮我优化以下提示词，使其更加清晰、有效和专业。原始提示词的用途是通过右键菜单分析用户选中的文字内容。
+
+原始提示词：
+"""
+${currentPrompt}
+"""
+
+请提供一个优化后的版本，要求：
+1. 保持原始意图和功能不变
+2. 使表达更清晰、更具体
+3. 提高AI生成内容的质量和相关性
+4. 保持简洁，避免冗长
+
+请只返回优化后的提示词内容，不要包含其他解释。`;
+
+    const response = await fetch(
+      config.apiEndpoint || "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${config.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: config.apiModel || "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: "你是一个专业的提示词优化专家，擅长改进AI提示词的质量和效果。",
+            },
+            {
+              role: "user",
+              content: optimizationPrompt,
+            },
+          ],
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const optimizedPrompt = data.choices[0].message.content.trim();
+
+    if (optimizedPrompt) {
+      // 更新文本框内容
+      templateTextarea.value = optimizedPrompt;
+      showStatus("提示词优化成功！", "success");
+    } else {
+      throw new Error("AI返回的优化结果为空");
+    }
+
+  } catch (error) {
+    console.error("AI优化提示词失败:", error);
+    showStatus(`优化失败: ${error.message}`, "error");
+  } finally {
+    // 恢复按钮状态
+    buttonElement.textContent = originalText;
+    buttonElement.disabled = false;
   }
 }
