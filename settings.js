@@ -524,12 +524,16 @@ function getContextTypeText(contextType) {
       return i18nInstance
         ? i18nInstance.t("settings.contextTypePage")
         : "整个页面";
+    case "image":
+      return i18nInstance
+        ? i18nInstance.t("settings.contextTypeImage")
+        : "图片";
     case "both":
       return i18nInstance
         ? i18nInstance.t("settings.contextTypeBoth")
-        : "两种场景";
+        : "多种场景";
     default:
-      return "两种场景";
+      return "多种场景";
   }
 }
 
@@ -540,6 +544,8 @@ function getContextTypeIcon(contextType) {
       return "📝";
     case "page":
       return "📄";
+    case "image":
+      return "🖼️";
     case "both":
       return "🔀";
     default:
@@ -564,6 +570,7 @@ function startEditPrompt(index) {
   const saveText = i18nInstance.t("settings.savePrompt");
   const contextTypeSelection = i18nInstance.t("settings.contextTypeSelection");
   const contextTypePage = i18nInstance.t("settings.contextTypePage");
+  const contextTypeImage = i18nInstance.t("settings.contextTypeImage");
   const contextTypeBoth = i18nInstance.t("settings.contextTypeBoth");
 
   const currentContextType = prompt.contextType || "both";
@@ -579,7 +586,7 @@ function startEditPrompt(index) {
           prompt.name
         }" placeholder="${promptNamePlaceholder}">
       </div>
-      
+
       <div class="form-row">
         <label class="form-label">使用场景:</label>
         <select class="prompt-context-select">
@@ -589,6 +596,9 @@ function startEditPrompt(index) {
           <option value="page" ${
             currentContextType === "page" ? "selected" : ""
           }>📄 ${contextTypePage}</option>
+          <option value="image" ${
+            currentContextType === "image" ? "selected" : ""
+          }>🖼️ ${contextTypeImage}</option>
           <option value="both" ${
             currentContextType === "both" ? "selected" : ""
           }>🔀 ${contextTypeBoth}</option>
@@ -804,7 +814,8 @@ async function savePrompt(
     return;
   }
 
-  if (!userPromptTemplate.includes("{text}")) {
+  // 对于非图片类型的提示词，检查是否包含 {text} 占位符
+  if (contextType !== "image" && !userPromptTemplate.includes("{text}")) {
     showStatus(i18nInstance.t("settings.promptTextPlaceholder"), "error");
     return;
   }

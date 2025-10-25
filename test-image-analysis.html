@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片分析功能测试</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #4A90E2;
+      padding-bottom: 10px;
+    }
+
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .test-section h2 {
+      color: #4A90E2;
+      margin-top: 0;
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .test-image {
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .test-image:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .test-image img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-caption {
+      padding: 10px;
+      background: #f9f9f9;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .instructions {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .instructions h3 {
+      margin-top: 0;
+      color: #856404;
+    }
+
+    .instructions ol {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+
+    .instructions li {
+      margin: 5px 0;
+    }
+
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>🖼️ Ask AI Anything - 图片分析功能测试</h1>
+
+  <div class="instructions">
+    <h3>📋 测试说明</h3>
+    <ol>
+      <li>确保扩展已加载并配置了支持视觉的 API 模型（如 <code>gpt-4o</code>, <code>gpt-4-vision-preview</code>）</li>
+      <li>在下方图片上<strong>右键点击</strong>任意图片</li>
+      <li>选择 <code>Ask AI → 🖼️ 分析图片</code></li>
+      <li>侧边栏将显示 AI 对图片的分析结果</li>
+      <li>历史记录会保存图片和分析结果</li>
+    </ol>
+  </div>
+
+  <div class="test-section">
+    <h2>测试图片集合</h2>
+    <p>右键点击任意图片，选择"Ask AI"菜单中的图片分析选项</p>
+
+    <div class="image-grid">
+      <div class="test-image">
+        <img src="https://picsum.photos/400/300?random=1" alt="Random image 1">
+        <div class="image-caption">📷 随机图片 1 - 测试通用图片识别</div>
+      </div>
+
+      <div class="test-image">
+        <img src="https://picsum.photos/400/300?random=2" alt="Random image 2">
+        <div class="image-caption">📷 随机图片 2 - 测试不同场景</div>
+      </div>
+
+      <div class="test-image">
+        <img src="https://picsum.photos/400/300?random=3" alt="Random image 3">
+        <div class="image-caption">📷 随机图片 3 - 测试多样化内容</div>
+      </div>
+
+      <div class="test-image">
+        <img src="https://via.placeholder.com/400x300/4A90E2/ffffff?text=Sample+Chart" alt="Chart example">
+        <div class="image-caption">📊 图表示例 - 测试数据可视化识别</div>
+      </div>
+
+      <div class="test-image">
+        <img src="https://via.placeholder.com/400x300/28a745/ffffff?text=Code+Example" alt="Code example">
+        <div class="image-caption">💻 代码示例 - 测试技术内容识别</div>
+      </div>
+
+      <div class="test-image">
+        <img src="https://via.placeholder.com/400x300/dc3545/ffffff?text=UI+Design" alt="UI design">
+        <div class="image-caption">🎨 UI设计 - 测试界面分析</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>✅ 功能检查清单</h2>
+    <ul style="list-style: none; padding-left: 0;">
+      <li>☐ 右键菜单中显示图片相关的提示词选项</li>
+      <li>☐ 点击后侧边栏正确显示</li>
+      <li>☐ 侧边栏中显示图片预览</li>
+      <li>☐ AI 正确分析图片内容</li>
+      <li>☐ 分析结果支持 Markdown 渲染</li>
+      <li>☐ 图片分析记录保存到历史</li>
+      <li>☐ 历史记录中正确显示图片缩略图</li>
+      <li>☐ 点击历史记录可以在主区域查看</li>
+      <li>☐ 可以复制图片分析的 Markdown 格式</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>🔧 API 配置建议</h2>
+    <p>图片分析需要支持视觉功能的 AI 模型，推荐配置：</p>
+    <ul>
+      <li><strong>OpenAI:</strong> <code>gpt-4o</code> 或 <code>gpt-4-vision-preview</code></li>
+      <li><strong>API 端点:</strong> <code>https://api.openai.com/v1/chat/completions</code></li>
+      <li><strong>最大 Token:</strong> 建议设置为 <code>1000-2000</code> 以获得详细分析</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>📝 预期行为</h2>
+    <p>右键点击图片并选择"分析图片"后：</p>
+    <ol>
+      <li>页面右侧弹出侧边栏</li>
+      <li>侧边栏顶部显示"分析图片 - 图片分析"</li>
+      <li>"选中内容"区域显示图片预览</li>
+      <li>"AI 回答"区域显示"正在分析中..."</li>
+      <li>几秒后显示 AI 对图片的详细描述和分析</li>
+      <li>向下滚动可在历史记录中看到此次分析</li>
+    </ol>
+  </div>
+</body>
+</html>

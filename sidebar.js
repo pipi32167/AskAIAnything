@@ -97,6 +97,17 @@ function setupEventListeners() {
         event.data.pageTitle,
         event.data.promptConfig
       );
+    } else if (event.data.action === "explainImage") {
+      handleExplainImageRequest(
+        event.data.imageUrl,
+        event.data.imageData,
+        event.data.promptTemplate,
+        event.data.promptName,
+        event.data.sourceInfo,
+        event.data.pageUrl,
+        event.data.pageTitle,
+        event.data.promptConfig
+      );
     } else if (event.data.action === "reset") {
       hideCurrentExplanation();
     }
@@ -146,6 +157,72 @@ async function handleExplainRequest(
 
     // 保存到历史记录
     addToHistory(text, explanation, promptName, sourceInfo, pageUrl, pageTitle);
+  } catch (error) {
+    document.getElementById(
+      "currentExplanation"
+    ).innerHTML = `<div class="error">${i18nInstance.t("sidebar.error")} ${
+      error.message
+    }</div>`;
+  }
+}
+
+// 处理图片分析请求
+async function handleExplainImageRequest(
+  imageUrl,
+  imageData,
+  customPromptTemplate,
+  promptName,
+  sourceInfo,
+  pageUrl,
+  pageTitle,
+  promptConfig
+) {
+  hasCurrentExplanation = true;
+  showCurrentExplanation(); // 显示当前解释区域
+
+  // 更新侧边栏标题
+  const titleElement = document.getElementById("sidebarTitle");
+  if (promptName && sourceInfo) {
+    titleElement.textContent = `${promptName} - ${sourceInfo}`;
+    titleElement.title = `${promptName} - ${sourceInfo}`;
+  } else {
+    titleElement.textContent = i18nInstance.t("sidebar.title");
+  }
+
+  // 显示图片预览
+  const selectedTextElement = document.getElementById("currentSelectedText");
+  selectedTextElement.innerHTML = `<img src="${imageUrl}" alt="Selected image" style="max-width: 100%; border-radius: 4px; margin-top: 8px;" onerror="this.style.display='none'">`;
+  selectedTextElement.title = imageUrl;
+
+  document.getElementById(
+    "currentExplanation"
+  ).innerHTML = `<div class="loading">${i18nInstance.t(
+    "sidebar.analyzing"
+  )}</div>`;
+
+  try {
+    // 调用AI Vision API - 使用自定义提示词和配置
+    const explanation = await callAIWithImage(
+      imageUrl,
+      imageData,
+      customPromptTemplate,
+      promptConfig
+    );
+
+    // 显示解释 - 支持Markdown渲染
+    displayExplanation(explanation);
+
+    // 保存到历史记录
+    addToHistory(
+      imageUrl,
+      explanation,
+      promptName,
+      sourceInfo,
+      pageUrl,
+      pageTitle,
+      "image",
+      imageData
+    );
   } catch (error) {
     document.getElementById(
       "currentExplanation"
@@ -284,6 +361,114 @@ async function callAI(text, customPromptTemplate, promptConfig) {
   return data.choices[0].message.content;
 }
 
+// 调用AI Vision API（支持图片）
+async function callAIWithImage(imageUrl, imageData, customPromptTemplate, promptConfig) {
+  // 从storage获取API配置
+  const config = await chrome.storage.sync.get([
+    "apiKey",
+    "apiEndpoint",
+    "apiModel",
+    "maxTokens",
+    "systemPrompt",
+    "userPromptTemplate",
+  ]);
+
+  // 如果没有配置，返回示例说明
+  if (!config.apiKey) {
+    return i18nInstance.t("sidebar.configRequired", { text: imageUrl });
+  }
+
+  // 使用提示词特定的系统提示词，或默认提示词
+  let systemPrompt =
+    config.systemPrompt ||
+    "你是一个专业的AI助手，可以回答各种关于文字的问题。请用简洁清晰的中文回答。";
+
+  // 如果提示词配置中指定了系统提示词，且不是"default"，则使用它
+  if (
+    promptConfig &&
+    promptConfig.systemPrompt &&
+    promptConfig.systemPrompt !== "default"
+  ) {
+    systemPrompt = promptConfig.systemPrompt;
+  }
+
+  // 优先使用右键菜单传递的提示词，否则使用设置中的提示词模板
+  const userPromptTemplate =
+    customPromptTemplate ||
+    config.userPromptTemplate ||
+    "请分析这张图片的内容：";
+  const userPrompt = userPromptTemplate.replace("{text}", imageUrl);
+
+  // 确定使用的模型（对于图片分析，默认使用支持vision的模型）
+  let apiModel = config.apiModel || "gpt-4o";
+  if (
+    promptConfig &&
+    promptConfig.apiModel &&
+    promptConfig.apiModel !== "default"
+  ) {
+    apiModel = promptConfig.apiModel;
+  }
+
+  // 确定使用的最大token数
+  let maxTokens = config.maxTokens || 500;
+  if (
+    promptConfig &&
+    promptConfig.maxTokens &&
+    promptConfig.maxTokens !== "default"
+  ) {
+    maxTokens = parseInt(promptConfig.maxTokens) || 500;
+  }
+
+  // 构建消息数组
+  const messages = [
+    {
+      role: "system",
+      content: systemPrompt,
+    },
+    {
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text: userPrompt,
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: imageData || imageUrl, // 优先使用base64数据，否则使用URL
+            detail: "auto"
+          }
+        }
+      ]
+    },
+  ];
+
+  // 调用API
+  const response = await fetch(
+    config.apiEndpoint || "https://api.openai.com/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: apiModel,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: maxTokens,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
 // 添加到历史记录
 function addToHistory(
   text,
@@ -291,7 +476,9 @@ function addToHistory(
   promptName,
   sourceInfo,
   pageUrl,
-  pageTitle
+  pageTitle,
+  contextType = "text",
+  imageData = null
 ) {
   const timestamp = new Date().toLocaleString("zh-CN");
   const historyItem = {
@@ -300,9 +487,11 @@ function addToHistory(
     timestamp,
     promptName: promptName || "解释",
     sourceInfo:
-      sourceInfo || text.substring(0, 30) + (text.length > 30 ? "..." : ""),
+      sourceInfo || (contextType === "image" ? "图片分析" : text.substring(0, 30) + (text.length > 30 ? "..." : "")),
     pageUrl: pageUrl || "",
     pageTitle: pageTitle || "",
+    contextType: contextType,
+    imageData: imageData, // 保存图片数据用于历史记录显示
   };
 
   history.unshift(historyItem); // 添加到开头
@@ -419,10 +608,18 @@ function renderHistory() {
       const copyMarkdownText =
         i18nInstance?.t("sidebar.copyMarkdown") || "复制 Markdown";
 
+      // 根据内容类型显示不同的内容
+      const contentDisplay = item.contextType === "image"
+        ? `<div class="history-image" title="${item.text}">
+             <strong>图片：</strong><br>
+             <img src="${item.text}" alt="History image" style="max-width: 100%; border-radius: 4px; margin-top: 8px;" onerror="this.style.display='none'">
+           </div>`
+        : `<div class="history-text" title="${item.text}"><strong>文字：</strong>${item.text}</div>`;
+
       content.innerHTML = `
       <div class="history-timestamp">${item.timestamp}</div>
       ${urlDisplay}
-      <div class="history-text" title="${item.text}"><strong>文字：</strong>${item.text}</div>
+      ${contentDisplay}
       <div class="history-explanation"><strong>解释：</strong>${explanationHTML}</div>
       <div class="history-actions">
         <button class="view-in-main-btn" data-index="${index}">📌 在主区域查看</button>
@@ -489,8 +686,15 @@ function loadHistoryToMain(item) {
   }
 
   const selectedTextElement = document.getElementById("currentSelectedText");
-  selectedTextElement.textContent = item.text;
-  selectedTextElement.title = item.text; // 添加title以显示完整内容
+
+  // 根据内容类型显示不同的内容
+  if (item.contextType === "image") {
+    selectedTextElement.innerHTML = `<img src="${item.text}" alt="History image" style="max-width: 100%; border-radius: 4px; margin-top: 8px;" onerror="this.style.display='none'">`;
+    selectedTextElement.title = item.text;
+  } else {
+    selectedTextElement.textContent = item.text;
+    selectedTextElement.title = item.text;
+  }
 
   displayExplanation(item.explanation);
 

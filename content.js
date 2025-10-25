@@ -2,7 +2,7 @@
 let sidebarIframe = null;
 
 // 监听来自background的消息
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message) => {
   if (message.action === "explainText") {
     showSidebar(
       message.text,
@@ -19,6 +19,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       message.promptTemplate,
       message.promptName,
       "page",
+      message.promptConfig
+    );
+  } else if (message.action === "explainImage") {
+    // 处理图片分析
+    showImageSidebar(
+      message.imageUrl,
+      message.promptTemplate,
+      message.promptName,
       message.promptConfig
     );
   } else if (message.action === "toggleSidebar") {
@@ -94,6 +102,152 @@ function showSidebar(
       "*"
     );
   }, 100);
+}
+
+// 显示图片分析侧边栏
+function showImageSidebar(
+  imageUrl,
+  promptTemplate,
+  promptName,
+  promptConfig
+) {
+  // 如果侧边栏不存在，创建它
+  if (!sidebarIframe) {
+    createSidebar();
+  }
+
+  // 显示侧边栏
+  sidebarIframe.style.display = "block";
+
+  // 获取页面标题和URL
+  const pageTitle = document.title || "未命名页面";
+  const pageUrl = window.location.href;
+
+  // 将图片转换为base64
+  convertImageToBase64(imageUrl)
+    .then(base64Image => {
+      // 等待iframe加载完成后发送消息
+      setTimeout(() => {
+        sidebarIframe.contentWindow.postMessage(
+          {
+            action: "explainImage",
+            imageUrl: imageUrl,
+            imageData: base64Image,
+            promptTemplate: promptTemplate,
+            promptName: promptName || "分析图片",
+            sourceInfo: "图片分析",
+            contextType: "image",
+            pageUrl: pageUrl,
+            pageTitle: pageTitle,
+            promptConfig: promptConfig,
+          },
+          "*"
+        );
+      }, 100);
+    })
+    .catch(error => {
+      // 图片转换失败很常见（CORS限制），静默处理，直接使用URL
+      // 如果需要调试，取消下面这行的注释
+      // console.debug('图片使用URL模式:', error.message);
+
+      // 如果转换失败，直接发送原始URL
+      setTimeout(() => {
+        sidebarIframe.contentWindow.postMessage(
+          {
+            action: "explainImage",
+            imageUrl: imageUrl,
+            imageData: null,
+            promptTemplate: promptTemplate,
+            promptName: promptName || "分析图片",
+            sourceInfo: "图片分析",
+            contextType: "image",
+            pageUrl: pageUrl,
+            pageTitle: pageTitle,
+            promptConfig: promptConfig,
+          },
+          "*"
+        );
+      }, 100);
+    });
+}
+
+// 将图片转换为base64
+function convertImageToBase64(imageUrl) {
+  return new Promise((resolve, reject) => {
+    try {
+      // 创建一个临时的图片元素
+      const img = new Image();
+
+      // 设置超时（5秒）
+      const timeout = setTimeout(() => {
+        reject(new Error('图片加载超时'));
+      }, 5000);
+
+      img.onload = function() {
+        clearTimeout(timeout);
+        try {
+          // 创建canvas来转换图片
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          // 限制最大尺寸以节省内存和传输
+          const maxSize = 1024;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = (height / width) * maxSize;
+              width = maxSize;
+            } else {
+              width = (width / height) * maxSize;
+              height = maxSize;
+            }
+          }
+
+          // 设置canvas尺寸
+          canvas.width = width;
+          canvas.height = height;
+
+          // 绘制图片到canvas
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // 转换为base64（JPEG格式以节省空间）
+          const base64 = canvas.toDataURL('image/jpeg', 0.8);
+
+          resolve(base64);
+        } catch (e) {
+          reject(new Error('Canvas转换失败: ' + e.message));
+        }
+      };
+
+      img.onerror = function(e) {
+        clearTimeout(timeout);
+        reject(new Error('图片加载失败，可能是CORS限制'));
+      };
+
+      // 尝试使用跨域属性（某些图片可能不支持）
+      try {
+        img.crossOrigin = 'Anonymous';
+      } catch {
+        // 忽略跨域设置错误
+      }
+
+      // 如果是完整的URL直接使用，否则转换为绝对URL
+      try {
+        const absoluteUrl = imageUrl.startsWith('http')
+          ? imageUrl
+          : new URL(imageUrl, window.location.href).href;
+        img.src = absoluteUrl;
+      } catch (urlError) {
+        clearTimeout(timeout);
+        reject(new Error('无效的图片URL'));
+      }
+
+    } catch (error) {
+      reject(new Error('初始化失败: ' + error.message));
+    }
+  });
 }
 
 // 创建侧边栏

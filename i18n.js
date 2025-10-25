@@ -5,7 +5,7 @@ const translations = {
       title: "Ask AI Anything",
       settings: "设置",
       close: "关闭",
-      selectedText: "选中文字：",
+      selectedText: "选中内容：",
       aiExplanation: "AI 回答：",
       analyzing: "正在分析中...",
       error: "错误：",
@@ -93,7 +93,8 @@ const translations = {
       promptsReset: "已恢复默认提示词",
       contextTypeSelection: "选中文字",
       contextTypePage: "整个页面",
-      contextTypeBoth: "两种场景",
+      contextTypeImage: "图片",
+      contextTypeBoth: "多种场景",
     },
   },
   en: {
@@ -197,7 +198,8 @@ const translations = {
       promptsReset: "Reset to default prompts",
       contextTypeSelection: "Selected Text",
       contextTypePage: "Entire Page",
-      contextTypeBoth: "Both Scenarios",
+      contextTypeImage: "Image",
+      contextTypeBoth: "Multiple Scenarios",
     },
   },
 };
