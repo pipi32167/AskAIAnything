@@ -54,6 +54,23 @@ function setupEventListeners() {
     .getElementById("resetSettings")
     .addEventListener("click", handleResetSettings);
 
+  // 导出设置
+  document
+    .getElementById("exportSettings")
+    .addEventListener("click", handleExportSettings);
+
+  // 导入设置
+  document
+    .getElementById("importSettings")
+    .addEventListener("click", () => {
+      document.getElementById("importFile").click();
+    });
+
+  // 导入文件选择
+  document
+    .getElementById("importFile")
+    .addEventListener("change", handleImportFile);
+
   // 切换密钥可见性
   document
     .getElementById("toggleKeyVisibility")
@@ -996,5 +1013,296 @@ ${currentPrompt}
     // 恢复按钮状态
     buttonElement.textContent = originalText;
     buttonElement.disabled = false;
+  }
+}
+
+// 导出设置功能
+async function handleExportSettings() {
+  try {
+    // 获取所有设置
+    const syncSettings = await chrome.storage.sync.get([
+      "apiEndpoint",
+      "apiKey",
+      "apiModel",
+      "maxTokens",
+      "systemPrompt",
+      "userPromptTemplate",
+      "language",
+      "prompts"
+    ]);
+
+    // 获取本地存储的历史记录
+    const localSettings = await chrome.storage.local.get(["history"]);
+
+    // 构建导出数据
+    const exportData = {
+      version: "1.0.0",
+      exportTime: new Date().toISOString(),
+      syncSettings: {
+        apiEndpoint: syncSettings.apiEndpoint || "",
+        apiKey: syncSettings.apiKey || "",
+        apiModel: syncSettings.apiModel || "gpt-3.5-turbo",
+        maxTokens: syncSettings.maxTokens || 500,
+        systemPrompt: syncSettings.systemPrompt || "",
+        userPromptTemplate: syncSettings.userPromptTemplate || "",
+        language: syncSettings.language || "zh",
+        prompts: syncSettings.prompts || []
+      },
+      localSettings: {
+        history: localSettings.history || []
+      }
+    };
+
+    // 创建下载链接
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ask-ai-anything-settings-${new Date().toISOString().split('T')[0]}.json`;
+
+    // 触发下载
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // 清理URL对象
+    URL.revokeObjectURL(url);
+
+    showStatus("设置导出成功！", "success");
+
+  } catch (error) {
+    console.error("导出设置失败:", error);
+    showStatus(`导出失败: ${error.message}`, "error");
+  }
+}
+
+// 处理导入文件选择
+async function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const fileContent = await file.text();
+    const importData = JSON.parse(fileContent);
+
+    // 验证导入数据格式
+    if (!importData.version || !importData.syncSettings) {
+      throw new Error("无效的设置文件格式");
+    }
+
+    // 显示导入选项对话框
+    showImportDialog(importData);
+
+  } catch (error) {
+    console.error("导入文件解析失败:", error);
+    showStatus(`导入失败: ${error.message}`, "error");
+  }
+
+  // 清空文件输入，允许重复选择同一文件
+  event.target.value = "";
+}
+
+// 显示导入选项对话框
+function showImportDialog(importData) {
+  // 创建对话框HTML
+  const dialogHTML = `
+    <div id="importDialog" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">
+      <div style="
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      ">
+        <h2 style="margin: 0 0 20px 0; color: #333;">导入设置</h2>
+
+        <div style="margin-bottom: 20px; color: #666; font-size: 14px;">
+          <p><strong>导出时间:</strong> ${new Date(importData.exportTime).toLocaleString()}</p>
+          <p><strong>版本:</strong> ${importData.version}</p>
+          <p><strong>包含内容:</strong></p>
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>API配置: ${importData.syncSettings.apiEndpoint ? '✓' : '✗'}</li>
+            <li>API密钥: ${importData.syncSettings.apiKey ? '✓' : '✗'}</li>
+            <li>提示词配置: ${importData.syncSettings.prompts?.length || 0} 条</li>
+            <li>历史记录: ${importData.localSettings?.history?.length || 0} 条</li>
+          </ul>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <h3 style="margin: 0 0 10px 0; color: #333;">导入选项</h3>
+          <label style="display: block; margin-bottom: 10px; cursor: pointer;">
+            <input type="radio" name="importOption" value="replace" checked>
+            <strong>完全替换</strong> - 删除当前设置，完全使用导入的设置
+          </label>
+          <label style="display: block; margin-bottom: 10px; cursor: pointer;">
+            <input type="radio" name="importOption" value="merge">
+            <strong>合并设置</strong> - 保留现有设置，与导入设置合并
+          </label>
+          <div id="mergeOptions" style="margin-left: 25px; display: none;">
+            <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+              <input type="checkbox" id="mergeApiConfig" checked>
+              API配置（端点、密钥、模型等）
+            </label>
+            <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+              <input type="checkbox" id="mergePrompts" checked>
+              提示词配置（会合并，不会替换）
+            </label>
+            <label style="display: block; margin-bottom: 8px; cursor: pointer;">
+              <input type="checkbox" id="mergeHistory">
+              历史记录
+            </label>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button id="cancelImport" class="btn btn-secondary">取消</button>
+          <button id="confirmImport" class="btn btn-primary">确认导入</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 添加对话框到页面
+  document.body.insertAdjacentHTML('beforeend', dialogHTML);
+
+  const dialog = document.getElementById('importDialog');
+  const cancelBtn = document.getElementById('cancelImport');
+  const confirmBtn = document.getElementById('confirmImport');
+  const mergeOptions = document.getElementById('mergeOptions');
+
+  // 监听导入选项变化
+  document.querySelectorAll('input[name="importOption"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      mergeOptions.style.display =
+        document.querySelector('input[name="importOption"]:checked').value === 'merge'
+          ? 'block' : 'none';
+    });
+  });
+
+  // 取消按钮
+  cancelBtn.addEventListener('click', () => {
+    dialog.remove();
+  });
+
+  // 确认导入按钮
+  confirmBtn.addEventListener('click', () => {
+    const option = document.querySelector('input[name="importOption"]:checked').value;
+    dialog.remove();
+    executeImport(importData, option);
+  });
+
+  // 点击背景关闭对话框
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) {
+      dialog.remove();
+    }
+  });
+}
+
+// 执行导入设置
+async function executeImport(importData, option) {
+  try {
+    if (option === 'replace') {
+      // 完全替换现有设置
+      await chrome.storage.sync.clear();
+      await chrome.storage.local.clear();
+
+      await chrome.storage.sync.set(importData.syncSettings);
+      if (importData.localSettings?.history) {
+        await chrome.storage.local.set({ history: importData.localSettings.history });
+      }
+
+      showStatus("设置导入成功！页面将刷新...", "success");
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+
+    } else if (option === 'merge') {
+      // 合并设置
+      const mergeApiConfig = document.getElementById('mergeApiConfig').checked;
+      const mergePrompts = document.getElementById('mergePrompts').checked;
+      const mergeHistory = document.getElementById('mergeHistory').checked;
+
+      const currentSyncSettings = await chrome.storage.sync.get([
+        "apiEndpoint", "apiKey", "apiModel", "maxTokens",
+        "systemPrompt", "userPromptTemplate", "language", "prompts"
+      ]);
+      const currentLocalSettings = await chrome.storage.local.get(["history"]);
+
+      const newSyncSettings = { ...currentSyncSettings };
+      const newLocalSettings = { ...currentLocalSettings };
+
+      // 合并API配置
+      if (mergeApiConfig) {
+        ['apiEndpoint', 'apiKey', 'apiModel', 'maxTokens',
+         'systemPrompt', 'userPromptTemplate', 'language'].forEach(key => {
+          if (importData.syncSettings[key]) {
+            newSyncSettings[key] = importData.syncSettings[key];
+          }
+        });
+      }
+
+      // 合并提示词配置
+      if (mergePrompts && importData.syncSettings.prompts) {
+        const existingPrompts = newSyncSettings.prompts || [];
+        const importPrompts = importData.syncSettings.prompts;
+
+        // 合并提示词，避免重复
+        const mergedPrompts = [...existingPrompts];
+        importPrompts.forEach(importPrompt => {
+          const isDuplicate = existingPrompts.some(existing =>
+            existing.name === importPrompt.name &&
+            existing.userPromptTemplate === importPrompt.userPromptTemplate
+          );
+          if (!isDuplicate) {
+            mergedPrompts.push(importPrompt);
+          }
+        });
+
+        newSyncSettings.prompts = mergedPrompts;
+      }
+
+      // 合并历史记录
+      if (mergeHistory && importData.localSettings?.history) {
+        const existingHistory = newLocalSettings.history || [];
+        const importHistory = importData.localSettings.history;
+
+        // 合并历史记录，按时间排序，限制数量
+        const mergedHistory = [...existingHistory, ...importHistory]
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+          .slice(0, 50); // 限制最多50条历史记录
+
+        newLocalSettings.history = mergedHistory;
+      }
+
+      await chrome.storage.sync.set(newSyncSettings);
+      await chrome.storage.local.set(newLocalSettings);
+
+      showStatus("设置合并成功！页面将刷新...", "success");
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+    }
+
+  } catch (error) {
+    console.error("导入设置失败:", error);
+    showStatus(`导入失败: ${error.message}`, "error");
   }
 }
