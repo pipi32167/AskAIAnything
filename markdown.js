@@ -170,18 +170,17 @@ class SimpleMarkdown {
 
     for (let line of lines) {
       line = line.trim();
+      // 只处理非空且不是HTML标签的行
       if (line && !line.startsWith('<') && !line.startsWith('</')) {
         // 如果不是HTML标签，包装成段落
         processedLines.push(`<p>${line}</p>`);
-      } else {
+      } else if (line) {
+        // 只添加非空行
         processedLines.push(line);
       }
     }
 
-    html = processedLines.join('\n');
-
-    // 处理换行
-    html = html.replace(/\n/g, '');
+    html = processedLines.join('');
 
     // 清理多余的段落标签
     html = html.replace(/<p><\/p>/g, '');
@@ -189,6 +188,11 @@ class SimpleMarkdown {
     html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
     html = html.replace(/<p>(<ul>|<ol>|<pre>|<hr>)/g, '$1');
     html = html.replace(/(<\/ul>|<\/ol>|<\/pre>|<hr>)<\/p>/g, '$1');
+    html = html.replace(/<li><\/li>/g, '');  // 清理空列表项
+
+    // 清理连续的空格和换行
+    html = html.replace(/\s+/g, ' ');
+    html = html.replace(/>\s+</g, '><');
 
     return html;
   }

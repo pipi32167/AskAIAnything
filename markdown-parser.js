@@ -1,14 +1,14 @@
 // 使用 marked.js 进行 Markdown 渲染
 class MarkdownRenderer {
   constructor() {
-    // 配置 marked 选项
+    // 配置 marked 选项 - 紧凑模式
     marked.setOptions({
-      breaks: true,     // 支持换行符转换为 <br>
+      breaks: false,     // 关闭自动换行转换（减少空白）
       gfm: true,         // 启用 GitHub Flavored Markdown
       sanitize: false,   // 允许 HTML（已通过 API 清理）
       sanitizeFn: null,
       smartLists: true,  // 智能列表
-      smartypants: true, // 智能标点
+      smartypants: false, // 关闭智能标点（避免多余处理）
     });
   }
 

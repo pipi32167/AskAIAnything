@@ -26,6 +26,7 @@
         "sidebar.css",
         "marked.min.js",
         "markdown-parser.js",
+        "markdown.js",
         "i18n.js"
       ],
       "matches": ["<all_urls>"]
