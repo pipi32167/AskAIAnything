@@ -105,12 +105,7 @@ function showSidebar(
 }
 
 // 显示图片分析侧边栏
-function showImageSidebar(
-  imageUrl,
-  promptTemplate,
-  promptName,
-  promptConfig
-) {
+function showImageSidebar(imageUrl, promptTemplate, promptName, promptConfig) {
   // 如果侧边栏不存在，创建它
   if (!sidebarIframe) {
     createSidebar();
@@ -125,7 +120,7 @@ function showImageSidebar(
 
   // 将图片转换为base64
   convertImageToBase64(imageUrl)
-    .then(base64Image => {
+    .then((base64Image) => {
       // 等待iframe加载完成后发送消息
       setTimeout(() => {
         sidebarIframe.contentWindow.postMessage(
@@ -145,7 +140,7 @@ function showImageSidebar(
         );
       }, 100);
     })
-    .catch(error => {
+    .catch((error) => {
       // 图片转换失败很常见（CORS限制），静默处理，直接使用URL
       // 如果需要调试，取消下面这行的注释
       // console.debug('图片使用URL模式:', error.message);
@@ -180,15 +175,15 @@ function convertImageToBase64(imageUrl) {
 
       // 设置超时（5秒）
       const timeout = setTimeout(() => {
-        reject(new Error('图片加载超时'));
+        reject(new Error("图片加载超时"));
       }, 5000);
 
-      img.onload = function() {
+      img.onload = function () {
         clearTimeout(timeout);
         try {
           // 创建canvas来转换图片
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
 
           // 限制最大尺寸以节省内存和传输
           const maxSize = 1024;
@@ -213,39 +208,38 @@ function convertImageToBase64(imageUrl) {
           ctx.drawImage(img, 0, 0, width, height);
 
           // 转换为base64（JPEG格式以节省空间）
-          const base64 = canvas.toDataURL('image/jpeg', 0.8);
+          const base64 = canvas.toDataURL("image/jpeg", 0.8);
 
           resolve(base64);
         } catch (e) {
-          reject(new Error('Canvas转换失败: ' + e.message));
+          reject(new Error("Canvas转换失败: " + e.message));
         }
       };
 
-      img.onerror = function(e) {
+      img.onerror = function (e) {
         clearTimeout(timeout);
-        reject(new Error('图片加载失败，可能是CORS限制'));
+        reject(new Error("图片加载失败，可能是CORS限制"));
       };
 
       // 尝试使用跨域属性（某些图片可能不支持）
       try {
-        img.crossOrigin = 'Anonymous';
+        img.crossOrigin = "Anonymous";
       } catch {
         // 忽略跨域设置错误
       }
 
       // 如果是完整的URL直接使用，否则转换为绝对URL
       try {
-        const absoluteUrl = imageUrl.startsWith('http')
+        const absoluteUrl = imageUrl.startsWith("http")
           ? imageUrl
           : new URL(imageUrl, window.location.href).href;
         img.src = absoluteUrl;
       } catch (urlError) {
         clearTimeout(timeout);
-        reject(new Error('无效的图片URL'));
+        reject(new Error("无效的图片URL"));
       }
-
     } catch (error) {
-      reject(new Error('初始化失败: ' + error.message));
+      reject(new Error("初始化失败: " + error.message));
     }
   });
 }
@@ -395,53 +389,233 @@ function extractPageText() {
 
   // 尝试找到主要内容区域
   let mainContent = null;
-  const contentSelectors = [
-    "main",
-    '[role="main"]',
-    "article",
-    ".article",
-    ".post",
-    ".entry",
-    ".content",
-    "#content",
-    ".main",
-    "#main",
-    ".post-content",
-    ".entry-content",
-    ".article-content",
-  ];
+  // const contentSelectors = [
+  //   "main",
+  //   '[role="main"]',
+  //   "article",
+  //   ".article",
+  //   ".post",
+  //   ".entry",
+  //   ".content",
+  //   "#content",
+  //   ".main",
+  //   "#main",
+  //   ".post-content",
+  //   ".entry-content",
+  //   ".article-content",
+  // ];
 
-  for (const selector of contentSelectors) {
-    mainContent = clonedBody.querySelector(selector);
-    if (mainContent) break;
-  }
+  // for (const selector of contentSelectors) {
+  //   mainContent = clonedBody.querySelector(selector);
+  //   if (mainContent) break;
+  // }
 
   // 如果没找到主内容，使用整个body
-  if (!mainContent) {
-    mainContent = clonedBody;
-  }
+  // if (!mainContent || mainContent.textContent.trim().length < 200) {
+  mainContent = clonedBody;
+  // }
 
-  // 提取文本
-  let text = mainContent.innerText || mainContent.textContent || "";
+  // 转换为 Markdown 格式
+  let markdown = convertToMarkdown(mainContent);
+  console.log("Extracted Markdown:", markdown);
 
-  // 清理文本
-  text = text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .join("\n")
+  // 清理 Markdown
+  markdown = markdown
     .replace(/\n{3,}/g, "\n\n") // 移除多个连续空行
+    .replace(/^\s+|\s+$/gm, "") // 移除每行首尾空格
     .trim();
 
   // 限制最大长度
-  const maxLength = 6000; // 降低最大长度以节省token
-  if (text.length > maxLength) {
-    text =
-      text.substring(0, maxLength) +
-      "\n\n...（内容已截断，仅显示前" +
+  const maxLength = 8000; // Markdown 格式可以稍微多一些，因为结构更清晰
+  if (markdown.length > maxLength) {
+    markdown =
+      markdown.substring(0, maxLength) +
+      "\n\n---\n*（内容已截断，仅显示前 " +
       maxLength +
-      "字符）";
+      " 字符）*";
   }
 
-  return text || "无法提取页面内容";
+  return markdown || "无法提取页面内容";
+}
+
+// 将 HTML 元素转换为 Markdown
+function convertToMarkdown(element) {
+  let markdown = "";
+
+  function processNode(node, depth = 0) {
+    if (!node) return "";
+
+    // 文本节点
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent.trim();
+      return text ? text + " " : "";
+    }
+
+    // 元素节点
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const tagName = node.tagName.toLowerCase();
+      let result = "";
+
+      switch (tagName) {
+        // 标题
+        case "h1":
+          result = "\n\n# " + getTextContent(node) + "\n\n";
+          break;
+        case "h2":
+          result = "\n\n## " + getTextContent(node) + "\n\n";
+          break;
+        case "h3":
+          result = "\n\n### " + getTextContent(node) + "\n\n";
+          break;
+        case "h4":
+          result = "\n\n#### " + getTextContent(node) + "\n\n";
+          break;
+        case "h5":
+          result = "\n\n##### " + getTextContent(node) + "\n\n";
+          break;
+        case "h6":
+          result = "\n\n###### " + getTextContent(node) + "\n\n";
+          break;
+
+        // 段落
+        case "p":
+          result = "\n\n" + processChildren(node) + "\n\n";
+          break;
+
+        // 链接
+        case "a":
+          const href = node.getAttribute("href");
+          const text = getTextContent(node);
+          if (href && text) {
+            result = `[${text}](${href})`;
+          } else {
+            result = text;
+          }
+          break;
+
+        // 强调
+        case "strong":
+        case "b":
+          result = "**" + getTextContent(node) + "**";
+          break;
+        case "em":
+        case "i":
+          result = "*" + getTextContent(node) + "*";
+          break;
+
+        // 代码
+        case "code":
+          result = "`" + getTextContent(node) + "`";
+          break;
+        case "pre":
+          const code = getTextContent(node);
+          result = "\n\n```\n" + code + "\n```\n\n";
+          break;
+
+        // 列表
+        case "ul":
+          result = "\n" + processListItems(node, "-") + "\n";
+          break;
+        case "ol":
+          result = "\n" + processListItems(node, "1.") + "\n";
+          break;
+        case "li":
+          // 由 processListItems 处理
+          result = processChildren(node);
+          break;
+
+        // 引用
+        case "blockquote":
+          const quote = processChildren(node)
+            .split("\n")
+            .map((line) => "> " + line)
+            .join("\n");
+          result = "\n\n" + quote + "\n\n";
+          break;
+
+        // 水平线
+        case "hr":
+          result = "\n\n---\n\n";
+          break;
+
+        // 换行
+        case "br":
+          result = "  \n";
+          break;
+
+        // 图片
+        case "img":
+          const alt = node.getAttribute("alt") || "image";
+          const src = node.getAttribute("src");
+          if (src) {
+            result = `![${alt}](${src})`;
+          }
+          break;
+
+        // 表格（简化处理）
+        case "table":
+          result = "\n\n" + processTable(node) + "\n\n";
+          break;
+
+        // Div 和其他容器，递归处理子元素
+        default:
+          result = processChildren(node);
+          break;
+      }
+
+      return result;
+    }
+
+    return "";
+  }
+
+  function processChildren(node) {
+    let result = "";
+    for (let child of node.childNodes) {
+      result += processNode(child);
+    }
+    return result;
+  }
+
+  function getTextContent(node) {
+    return (node.textContent || "").trim();
+  }
+
+  function processListItems(ul, marker) {
+    let result = "";
+    const items = ul.querySelectorAll(":scope > li");
+    items.forEach((li, index) => {
+      const prefix = marker === "1." ? `${index + 1}. ` : "- ";
+      const content = processChildren(li).trim();
+      if (content) {
+        result += prefix + content + "\n";
+      }
+    });
+    return result;
+  }
+
+  function processTable(table) {
+    let result = "";
+    const rows = table.querySelectorAll("tr");
+    if (rows.length === 0) return "";
+
+    rows.forEach((row, rowIndex) => {
+      const cells = row.querySelectorAll("th, td");
+      const cellContents = Array.from(cells).map((cell) =>
+        getTextContent(cell)
+      );
+
+      result += "| " + cellContents.join(" | ") + " |\n";
+
+      // 添加表头分隔符
+      if (rowIndex === 0 && row.querySelectorAll("th").length > 0) {
+        result += "| " + cellContents.map(() => "---").join(" | ") + " |\n";
+      }
+    });
+
+    return result;
+  }
+
+  markdown = processNode(element);
+  return markdown;
 }
