@@ -417,7 +417,7 @@ function extractPageText() {
 
   // 转换为 Markdown 格式
   let markdown = convertToMarkdown(mainContent);
-  console.log("Extracted Markdown:", markdown);
+  // console.log("Extracted Markdown:", markdown);
 
   // 清理 Markdown
   markdown = markdown
