@@ -114,6 +114,7 @@ async function loadSettings() {
       "systemPrompt",
       "userPromptTemplate",
       "language",
+      "markdownMode",
     ]);
 
     if (settings.apiEndpoint) {
@@ -150,6 +151,9 @@ async function loadSettings() {
     if (settings.language) {
       document.getElementById("language").value = settings.language;
     }
+    if (settings.markdownMode) {
+      document.getElementById("markdownMode").value = settings.markdownMode;
+    }
   } catch (error) {
     console.error("加载设置失败:", error);
     showStatus("加载设置失败", "error");
@@ -168,6 +172,7 @@ async function handleSaveSettings(e) {
   const userPromptTemplate = document
     .getElementById("userPromptTemplate")
     .value.trim();
+  const markdownMode = document.getElementById("markdownMode").value;
 
   // 如果选择了自定义模型
   if (apiModel === "custom") {
@@ -192,6 +197,7 @@ async function handleSaveSettings(e) {
       maxTokens,
       systemPrompt,
       userPromptTemplate,
+      markdownMode,
     });
 
     showStatus("✅ 配置保存成功！", "success");

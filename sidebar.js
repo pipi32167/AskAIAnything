@@ -251,12 +251,17 @@ function hideCurrentExplanation() {
 }
 
 // 显示解释内容（支持Markdown）
-function displayExplanation(text) {
+async function displayExplanation(text) {
   const explanationDiv = document.getElementById("currentExplanation");
+
+  // 获取 Markdown 显示模式设置
+  const settings = await chrome.storage.sync.get(["markdownMode"]);
+  const markdownMode = settings.markdownMode || "compact";
+  const modeClass = markdownMode === "relaxed" ? "relaxed-mode" : "";
 
   if (markdownParser.hasMarkdown(text)) {
     // 如果包含Markdown语法，则渲染
-    explanationDiv.innerHTML = `<div class="markdown-content">${markdownParser.parse(
+    explanationDiv.innerHTML = `<div class="markdown-content ${modeClass}">${markdownParser.parse(
       text
     )}</div>`;
   } else {
@@ -470,7 +475,7 @@ async function callAIWithImage(imageUrl, imageData, customPromptTemplate, prompt
 }
 
 // 添加到历史记录
-function addToHistory(
+async function addToHistory(
   text,
   explanation,
   promptName,
@@ -506,7 +511,7 @@ function addToHistory(
 
   // 更新UI
   updatePromptFilterOptions();
-  filterHistory(); // 重新应用当前的过滤条件
+  await filterHistory(); // 重新应用当前的过滤条件
 }
 
 // 加载历史记录
@@ -516,12 +521,12 @@ async function loadHistory() {
     history = data.history;
     filteredHistory = [...history]; // 初始时显示所有历史记录
     updatePromptFilterOptions();
-    renderHistory();
+    await renderHistory();
   }
 }
 
 // 渲染历史记录
-function renderHistory() {
+async function renderHistory() {
   const container = document.getElementById("historyAccordion");
   if (!container) {
     console.error("historyAccordion container not found");
@@ -543,6 +548,11 @@ function renderHistory() {
     container.innerHTML = `<div class="no-history">${noFilterResultsText}</div>`;
     return;
   }
+
+  // 获取 Markdown 显示模式设置（在循环外部获取一次）
+  const settings = await chrome.storage.sync.get(["markdownMode"]);
+  const markdownMode = settings.markdownMode || "compact";
+  const modeClass = markdownMode === "relaxed" ? "relaxed-mode" : "";
 
   filteredHistory.forEach((item, originalIndex) => {
     try {
@@ -585,7 +595,7 @@ function renderHistory() {
 
       // 渲染历史记录的解释（支持Markdown）
       const explanationHTML = markdownParser.hasMarkdown(item.explanation)
-        ? `<div class="markdown-content">${markdownParser.parse(
+        ? `<div class="markdown-content ${modeClass}">${markdownParser.parse(
             item.explanation
           )}</div>`
         : `<div class="plain-text">${item.explanation.replace(
@@ -703,12 +713,12 @@ function loadHistoryToMain(item) {
 }
 
 // 删除单个历史记录
-function deleteHistoryItem(index) {
+async function deleteHistoryItem(index) {
   if (confirm(i18nInstance.t("sidebar.deleteConfirm"))) {
     history.splice(index, 1);
     chrome.storage.local.set({ history });
     updatePromptFilterOptions();
-    filterHistory(); // 重新应用过滤条件
+    await filterHistory(); // 重新应用过滤条件
   }
 }
 
@@ -839,7 +849,7 @@ function updatePromptFilterOptions() {
 }
 
 // 过滤历史记录
-function filterHistory() {
+async function filterHistory() {
   const searchQuery = document
     .getElementById("historySearch")
     .value.toLowerCase()
@@ -874,18 +884,18 @@ function filterHistory() {
     return true;
   });
 
-  renderHistory();
+  await renderHistory();
 }
 
 // 清空搜索
-function clearSearch() {
+async function clearSearch() {
   document.getElementById("historySearch").value = "";
-  filterHistory();
+  await filterHistory();
 }
 
 // 清空所有过滤器
-function clearFilters() {
+async function clearFilters() {
   document.getElementById("historySearch").value = "";
   document.getElementById("promptFilter").value = "";
-  filterHistory();
+  await filterHistory();
 }
