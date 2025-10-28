@@ -18,5 +18,10 @@
   - [ ] SEO 分析
 - [X] 支持读取本页面的所有文字
 - [X] 支持解读图片
+- [X] 支持网页全文转 markdown
+- [ ] 支持联网查询
+  - [ ] support mcp
+  - [ ] use search api mcp
+
 
 
