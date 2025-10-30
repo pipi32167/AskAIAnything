@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sidebar Markdown 渲染测试</title>
+  <link rel="stylesheet" href="sidebar.css">
+  <style>
+    body {
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .test-section {
+      margin-bottom: 30px;
+      border: 2px solid #3498DB;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .test-header {
+      background: #3498DB;
+      color: white;
+      padding: 10px 15px;
+      font-weight: 600;
+    }
+    .test-content {
+      padding: 15px;
+      background: white;
+    }
+    .raw-text {
+      background: #f5f5f5;
+      padding: 10px;
+      border-left: 3px solid #e74c3c;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .controls {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: white;
+      padding: 15px;
+      border: 2px solid #3498DB;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .controls button {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      background: #3498DB;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .controls button:hover {
+      background: #2980B9;
+    }
+    .controls label {
+      display: block;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="controls">
+  <h3 style="margin: 0 0 10px 0;">测试控制</h3>
+  <button onclick="toggleMode()">切换渲染模式</button>
+  <button onclick="inspectHTML()">查看 HTML 结构</button>
+  <button onclick="resetTests()">重新渲染</button>
+  <label>
+    <input type="checkbox" id="showRaw" onchange="toggleRawText()"> 显示原始文本
+  </label>
+  <div id="modeInfo" style="margin-top: 10px; font-size: 12px; color: #666;"></div>
+</div>
+
+<h1>Sidebar Markdown 渲染测试</h1>
+<p>这个页面用于测试和调试侧边栏的 Markdown 渲染效果。打开 Chrome DevTools 进行调试。</p>
+
+<!-- 测试 1: Claude Skills 示例（用户截图的内容） -->
+<div class="test-section">
+  <div class="test-header">测试 1: Claude Skills - 多级列表</div>
+  <div class="test-content">
+    <div class="raw-text" style="display: none;">## 2. Skills的工作机制
+
+- Claude在执行任务时自动扫描并加载相关Skills，仅加载所需最小信息以保证效率。
+
+- 主要特点：
+
+  - 可组合：多个Skills可叠加，自动协调使用。
+
+  - 可移植：统一格式，支持Claude全产品线、API。
+
+  - 高效：按需加载，保持响应速度。
+
+  - 强大：Skills可包含可执行代码，适用于需传统编程的任务。
+
+## 3. Skills与各Claude产品的集成</div>
+    <div id="test1" class="explanation-content markdown-content"></div>
+  </div>
+</div>
+
+<!-- 测试 2: 简单列表 -->
+<div class="test-section">
+  <div class="test-header">测试 2: 简单列表（无嵌套）</div>
+  <div class="test-content">
+    <div class="raw-text" style="display: none;">### 功能列表
+
+- 第一个功能
+- 第二个功能
+- 第三个功能
+- 第四个功能</div>
+    <div id="test2" class="explanation-content markdown-content"></div>
+  </div>
+</div>
+
+<!-- 测试 3: 段落和换行 -->
+<div class="test-section">
+  <div class="test-header">测试 3: 段落和换行</div>
+  <div class="test-content">
+    <div class="raw-text" style="display: none;">这是第一段文字。
+
+这是第二段文字。
+
+这是第三段文字，包含**粗体**和*斜体*。</div>
+    <div id="test3" class="explanation-content markdown-content"></div>
+  </div>
+</div>
+
+<!-- 测试 4: 代码块 -->
+<div class="test-section">
+  <div class="test-header">测试 4: 代码块</div>
+  <div class="test-content">
+    <div class="raw-text" style="display: none;">代码示例：
+
+```javascript
+function hello() {
+  console.log('Hello World');
+}
+```
+
+这是代码块后的文字。</div>
+    <div id="test4" class="explanation-content markdown-content"></div>
+  </div>
+</div>
+
+<!-- 测试 5: 混合内容 -->
+<div class="test-section">
+  <div class="test-header">测试 5: 混合内容</div>
+  <div class="test-content">
+    <div class="raw-text" style="display: none;">## 标题
+
+普通段落文字。
+
+- 列表项1
+- 列表项2
+  - 嵌套项2.1
+  - 嵌套项2.2
+- 列表项3
+
+> 这是一个引用块
+
+代码示例 `inline code` 在文本中。</div>
+    <div id="test5" class="explanation-content markdown-content"></div>
+  </div>
+</div>
+
+<!-- 测试 6: 有序列表 -->
+<div class="test-section">
+  <div class="test-header">测试 6: 有序列表</div>
+  <div class="test-content">
+    <div class="raw-text" style="display: none;">### 步骤说明
+
+1. 第一步操作
+2. 第二步操作
+   1. 子步骤A
+   2. 子步骤B
+3. 第三步操作</div>
+    <div id="test6" class="explanation-content markdown-content"></div>
+  </div>
+</div>
+
+<script src="marked.min.js"></script>
+<script src="markdown-parser.js"></script>
+
+<script>
+// 测试数据
+const testData = {
+  test1: `## 2. Skills的工作机制
+
+- Claude在执行任务时自动扫描并加载相关Skills，仅加载所需最小信息以保证效率。
+
+- 主要特点：
+
+  - 可组合：多个Skills可叠加，自动协调使用。
+
+  - 可移植：统一格式，支持Claude全产品线、API。
+
+  - 高效：按需加载，保持响应速度。
+
+  - 强大：Skills可包含可执行代码，适用于需传统编程的任务。
+
+## 3. Skills与各Claude产品的集成`,
+
+  test2: `### 功能列表
+
+- 第一个功能
+- 第二个功能
+- 第三个功能
+- 第四个功能`,
+
+  test3: `这是第一段文字。
+
+这是第二段文字。
+
+这是第三段文字，包含**粗体**和*斜体*。`,
+
+  test4: `代码示例：
+
+\`\`\`javascript
+function hello() {
+  console.log('Hello World');
+}
+\`\`\`
+
+这是代码块后的文字。`,
+
+  test5: `## 标题
+
+普通段落文字。
+
+- 列表项1
+- 列表项2
+  - 嵌套项2.1
+  - 嵌套项2.2
+- 列表项3
+
+> 这是一个引用块
+
+代码示例 \`inline code\` 在文本中。`,
+
+  test6: `### 步骤说明
+
+1. 第一步操作
+2. 第二步操作
+   1. 子步骤A
+   2. 子步骤B
+3. 第三步操作`
+};
+
+// 渲染所有测试
+function renderTests() {
+  console.log('开始渲染测试...');
+  console.log('Marked 配置:', marked.getDefaults());
+
+  for (let key in testData) {
+    const element = document.getElementById(key);
+    const rawElement = element.previousElementSibling;
+
+    if (element) {
+      try {
+        const html = markdownParser.parse(testData[key]);
+        element.innerHTML = html;
+        console.log(`${key} 渲染成功`);
+        console.log('原始:', testData[key]);
+        console.log('HTML:', html);
+        console.log('---');
+      } catch (error) {
+        console.error(`${key} 渲染失败:`, error);
+        element.innerHTML = `<p style="color: red;">渲染错误: ${error.message}</p>`;
+      }
+    }
+  }
+
+  updateModeInfo();
+}
+
+// 切换渲染模式
+function toggleMode() {
+  const currentBreaks = marked.getDefaults().breaks;
+  marked.setOptions({
+    breaks: !currentBreaks
+  });
+  console.log('切换 breaks 模式:', !currentBreaks);
+  renderTests();
+}
+
+// 查看 HTML 结构
+function inspectHTML() {
+  const test1 = document.getElementById('test1');
+  console.log('=== Test 1 HTML 结构 ===');
+  console.log(test1.innerHTML);
+  console.log('\n=== DOM 结构 ===');
+  console.log(test1);
+
+  // 计算元素间距
+  const children = test1.children;
+  console.log('\n=== 元素间距分析 ===');
+  for (let i = 0; i < children.length; i++) {
+    const el = children[i];
+    const style = window.getComputedStyle(el);
+    console.log(`${i}. <${el.tagName}> margin: ${style.marginTop} ${style.marginBottom}, text: "${el.textContent.substring(0, 50)}..."`);
+  }
+
+  alert('HTML 结构已输出到控制台，请打开 DevTools 查看');
+}
+
+// 重新渲染
+function resetTests() {
+  renderTests();
+}
+
+// 切换显示原始文本
+function toggleRawText() {
+  const showRaw = document.getElementById('showRaw').checked;
+  const rawTexts = document.querySelectorAll('.raw-text');
+  rawTexts.forEach(el => {
+    el.style.display = showRaw ? 'block' : 'none';
+  });
+}
+
+// 更新模式信息
+function updateModeInfo() {
+  const info = document.getElementById('modeInfo');
+  const config = marked.getDefaults();
+  info.innerHTML = `
+    <strong>当前配置:</strong><br>
+    breaks: ${config.breaks}<br>
+    gfm: ${config.gfm}
+  `;
+}
+
+// 页面加载时渲染
+window.addEventListener('DOMContentLoaded', () => {
+  console.log('页面加载完成，开始渲染测试');
+  renderTests();
+});
+</script>
+
+</body>
+</html>

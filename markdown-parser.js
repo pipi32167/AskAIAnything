@@ -3,7 +3,7 @@ class MarkdownRenderer {
   constructor() {
     // 配置 marked 选项 - 紧凑模式
     marked.setOptions({
-      breaks: false,     // 关闭自动换行转换（减少空白）
+      breaks: false,      // 启用自动换行转换（单换行变成 <br>）
       gfm: true,         // 启用 GitHub Flavored Markdown
       sanitize: false,   // 允许 HTML（已通过 API 清理）
       sanitizeFn: null,
