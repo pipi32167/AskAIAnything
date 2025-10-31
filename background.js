@@ -177,12 +177,10 @@ function getDefaultPrompts() {
   ];
 }
 
-// 处理扩展图标点击
+// 处理扩展图标点击 - 打开侧边栏
 chrome.action.onClicked.addListener(async (tab) => {
-  // 发送消息到content script打开侧边栏（不选择任何文字）
-  chrome.tabs.sendMessage(tab.id, {
-    action: "toggleSidebar",
-  });
+  // 打开侧边栏
+  await chrome.sidePanel.open({ windowId: tab.windowId });
 });
 
 // 处理右键菜单点击
@@ -201,9 +199,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
       // 根据不同的上下文类型发送不同的消息
       if (contextType === "image") {
-        // 处理图片
+        // 处理图片 - 需要content script转换图片
         chrome.tabs.sendMessage(tab.id, {
-          action: "explainImage",
+          action: "prepareImageData",
           imageUrl: info.srcUrl,
           promptTemplate: prompt.userPromptTemplate,
           promptName: prompt.name,
@@ -213,11 +211,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             maxTokens: prompt.maxTokens,
           },
         });
-      } else {
-        // 处理文字或页面
+      } else if (contextType === "page") {
+        // 处理整个页面 - 需要content script提取页面文本
         chrome.tabs.sendMessage(tab.id, {
-          action: contextType === "page" ? "explainPage" : "explainText",
-          text: contextType === "page" ? null : info.selectionText,
+          action: "preparePageData",
           promptTemplate: prompt.userPromptTemplate,
           promptName: prompt.name,
           promptConfig: {
@@ -226,12 +223,40 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             maxTokens: prompt.maxTokens,
           },
         });
+      } else {
+        // 处理选中文本 - 直接发送给sidebar
+        const pageTitle = tab.title || "未命名页面";
+        const pageUrl = tab.url;
+        const text = info.selectionText;
+        const sourceInfo = text.length > 30 ? text.substring(0, 30) + "..." : text;
+
+        // 打开侧边栏并发送数据
+        await chrome.sidePanel.open({ windowId: tab.windowId });
+
+        // 延迟一下确保sidebar已加载
+        setTimeout(() => {
+          chrome.runtime.sendMessage({
+            action: "explainText",
+            text: text,
+            promptTemplate: prompt.userPromptTemplate,
+            promptName: prompt.name,
+            sourceInfo: sourceInfo,
+            contextType: "selection",
+            pageUrl: pageUrl,
+            pageTitle: pageTitle,
+            promptConfig: {
+              systemPrompt: prompt.systemPrompt,
+              apiModel: prompt.apiModel,
+              maxTokens: prompt.maxTokens,
+            },
+          });
+        }, 100);
       }
     }
   }
 });
 
-// 处理来自sidebar的消息（打开设置页面）
+// 处理来自sidebar和content script的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "openSettings") {
     chrome.runtime.openOptionsPage();
@@ -239,5 +264,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // 刷新右键菜单
     chrome.contextMenus.removeAll();
     createContextMenu();
+  } else if (message.action === "dataReady") {
+    // Content script已准备好数据，打开侧边栏
+    // 获取tab的windowId
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      if (tabs[0]) {
+        await chrome.sidePanel.open({ windowId: tabs[0].windowId });
+
+        // 延迟一下确保sidebar已加载，然后转发消息
+        setTimeout(() => {
+          chrome.runtime.sendMessage(message.data);
+        }, 100);
+      }
+    });
   }
 });

@@ -54,10 +54,9 @@ function updateUILanguage() {
 
 // 设置事件监听
 function setupEventListeners() {
-  // 关闭按钮
+  // 关闭按钮 - Side Panel 由浏览器控制，这里只隐藏当前解释
   document.getElementById("closeSidebar").addEventListener("click", () => {
-    hideCurrentExplanation(); // 关闭时隐藏当前解释
-    window.parent.postMessage({ action: "closeSidebar" }, "*");
+    hideCurrentExplanation();
   });
 
   // 设置按钮
@@ -84,31 +83,31 @@ function setupEventListeners() {
     .getElementById("clearFilters")
     .addEventListener("click", clearFilters);
 
-  // 接收来自content script的消息
-  window.addEventListener("message", (event) => {
-    if (event.data.action === "explainText") {
+  // 接收来自background和content script的消息
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "explainText") {
       handleExplainRequest(
-        event.data.text,
-        event.data.promptTemplate,
-        event.data.promptName,
-        event.data.sourceInfo,
-        event.data.contextType,
-        event.data.pageUrl,
-        event.data.pageTitle,
-        event.data.promptConfig
+        message.text,
+        message.promptTemplate,
+        message.promptName,
+        message.sourceInfo,
+        message.contextType,
+        message.pageUrl,
+        message.pageTitle,
+        message.promptConfig
       );
-    } else if (event.data.action === "explainImage") {
+    } else if (message.action === "explainImage") {
       handleExplainImageRequest(
-        event.data.imageUrl,
-        event.data.imageData,
-        event.data.promptTemplate,
-        event.data.promptName,
-        event.data.sourceInfo,
-        event.data.pageUrl,
-        event.data.pageTitle,
-        event.data.promptConfig
+        message.imageUrl,
+        message.imageData,
+        message.promptTemplate,
+        message.promptName,
+        message.sourceInfo,
+        message.pageUrl,
+        message.pageTitle,
+        message.promptConfig
       );
-    } else if (event.data.action === "reset") {
+    } else if (message.action === "reset") {
       hideCurrentExplanation();
     }
   });
