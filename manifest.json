@@ -31,7 +31,10 @@
         "markdown.js",
         "i18n.js",
         "markdown-viewer.html",
-        "markdown-viewer.js"
+        "markdown-viewer.js",
+        "sql-wasm.js",
+        "sql-wasm.wasm",
+        "db.js"
       ],
       "matches": ["<all_urls>"]
     }

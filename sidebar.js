@@ -9,6 +9,23 @@ let hasCurrentExplanation = false; // 标记是否有当前解释
 document.addEventListener("DOMContentLoaded", async () => {
   i18nInstance = await initI18n();
   updateUILanguage();
+
+  // 初始化数据库
+  try {
+    await window.dbManager.initDB();
+    console.log("数据库初始化完成");
+
+    // 检查并迁移旧数据（仅运行一次）
+    const migrated = await chrome.storage.local.get(["dbMigrated"]);
+    if (!migrated.dbMigrated) {
+      await window.dbManager.migrateOldData();
+      await chrome.storage.local.set({ dbMigrated: true });
+      console.log("数据迁移完成");
+    }
+  } catch (error) {
+    console.error("数据库初始化失败:", error);
+  }
+
   loadHistory();
   setupEventListeners();
   hideCurrentExplanation(); // 初始时隐藏
@@ -514,29 +531,48 @@ async function addToHistory(
     imageData: imageData, // 保存图片数据用于历史记录显示
   };
 
-  history.unshift(historyItem); // 添加到开头
+  // 保存到数据库
+  try {
+    await window.dbManager.addHistory(historyItem);
+    console.log("历史记录已保存到数据库");
 
-  // 限制历史记录数量
-  if (history.length > 20) {
-    history = history.slice(0, 20);
+    // 重新加载历史记录
+    await loadHistory();
+
+    // 更新UI
+    updatePromptFilterOptions();
+    await filterHistory(); // 重新应用当前的过滤条件
+  } catch (error) {
+    console.error("保存历史记录失败:", error);
+    // 降级：保存到旧的 chrome.storage
+    history.unshift(historyItem);
+    if (history.length > 20) {
+      history = history.slice(0, 20);
+    }
+    chrome.storage.local.set({ history });
+    updatePromptFilterOptions();
+    await filterHistory();
   }
-
-  // 保存到storage
-  chrome.storage.local.set({ history });
-
-  // 更新UI
-  updatePromptFilterOptions();
-  await filterHistory(); // 重新应用当前的过滤条件
 }
 
 // 加载历史记录
 async function loadHistory() {
-  const data = await chrome.storage.local.get(["history"]);
-  if (data.history) {
-    history = data.history;
+  try {
+    // 从数据库加载
+    history = await window.dbManager.getAllHistory();
     filteredHistory = [...history]; // 初始时显示所有历史记录
     updatePromptFilterOptions();
     await renderHistory();
+  } catch (error) {
+    console.error("从数据库加载历史记录失败:", error);
+    // 降级：从 chrome.storage 加载
+    const data = await chrome.storage.local.get(["history"]);
+    if (data.history) {
+      history = data.history;
+      filteredHistory = [...history];
+      updatePromptFilterOptions();
+      await renderHistory();
+    }
   }
 }
 
@@ -571,8 +607,8 @@ async function renderHistory() {
 
   filteredHistory.forEach((item) => {
     try {
-      // 找到原始历史记录中的索引
-      const index = history.findIndex((h) => h === item);
+      // 使用数据库ID而不是索引
+      const id = item.id;
       const accordionItem = document.createElement("div");
       accordionItem.className = "accordion-item";
 
@@ -599,7 +635,7 @@ async function renderHistory() {
       deleteBtn.title = "删除此记录";
       deleteBtn.addEventListener("click", (e) => {
         e.stopPropagation(); // 防止触发accordion展开
-        deleteHistoryItem(index);
+        deleteHistoryItem(id);
       });
 
       header.appendChild(headerText);
@@ -648,8 +684,8 @@ async function renderHistory() {
       ${contentDisplay}
       <div class="history-explanation"><strong>解释：</strong>${explanationHTML}</div>
       <div class="history-actions">
-        <button class="view-in-main-btn" data-index="${index}">📌 在主区域查看</button>
-        <button class="copy-markdown-btn" data-index="${index}">📋 ${copyMarkdownText}</button>
+        <button class="view-in-main-btn" data-id="${id}">📌 在主区域查看</button>
+        <button class="copy-markdown-btn" data-id="${id}">📋 ${copyMarkdownText}</button>
       </div>
     `;
 
@@ -693,7 +729,7 @@ async function renderHistory() {
 }
 
 // 将历史记录加载到主区域
-function loadHistoryToMain(item) {
+async function loadHistoryToMain(item) {
   // 生成markdown内容，根据类型显示不同的标题
   let markdownContent = "";
 
@@ -730,35 +766,68 @@ function loadHistoryToMain(item) {
     contextType: item.contextType || "text", // 传递内容类型
   };
 
-  // 在新标签页中打开markdown查看器
-  const dataParam = encodeURIComponent(JSON.stringify(data));
+  // 使用 chrome.storage.local 临时存储数据，避免 URL 长度限制和编码问题
+  const dataId = `markdown-viewer-${Date.now()}`;
+  await chrome.storage.local.set({ [dataId]: data });
+
+  // 在新标签页中打开markdown查看器，传递数据ID
   const viewerUrl =
-    chrome.runtime.getURL("markdown-viewer.html") + "?data=" + dataParam;
+    chrome.runtime.getURL("markdown-viewer.html") + "?id=" + dataId;
 
   chrome.tabs.create({ url: viewerUrl });
 }
 
 // 删除单个历史记录
-async function deleteHistoryItem(index) {
+async function deleteHistoryItem(id) {
   if (confirm(i18nInstance.t("sidebar.deleteConfirm"))) {
-    history.splice(index, 1);
-    chrome.storage.local.set({ history });
-    updatePromptFilterOptions();
-    await filterHistory(); // 重新应用过滤条件
+    try {
+      await window.dbManager.deleteHistory(id);
+      console.log("历史记录已删除");
+
+      // 重新加载历史记录
+      await loadHistory();
+      updatePromptFilterOptions();
+      await filterHistory(); // 重新应用过滤条件
+    } catch (error) {
+      console.error("删除历史记录失败:", error);
+      // 降级处理
+      const index = history.findIndex((h) => h.id === id);
+      if (index !== -1) {
+        history.splice(index, 1);
+        chrome.storage.local.set({ history });
+        updatePromptFilterOptions();
+        await filterHistory();
+      }
+    }
   }
 }
 
 // 清空所有历史记录
-function clearAllHistory() {
+async function clearAllHistory() {
   if (confirm(i18nInstance.t("sidebar.clearAllConfirm"))) {
-    history = [];
-    filteredHistory = [];
-    chrome.storage.local.set({ history });
-    updatePromptFilterOptions();
-    renderHistory();
-    // 如果没有当前解释，隐藏解释区域
-    if (!hasCurrentExplanation) {
-      hideCurrentExplanation();
+    try {
+      await window.dbManager.clearAllHistory();
+      console.log("所有历史记录已清空");
+
+      // 重新加载历史记录
+      await loadHistory();
+      updatePromptFilterOptions();
+      renderHistory();
+      // 如果没有当前解释，隐藏解释区域
+      if (!hasCurrentExplanation) {
+        hideCurrentExplanation();
+      }
+    } catch (error) {
+      console.error("清空历史记录失败:", error);
+      // 降级处理
+      history = [];
+      filteredHistory = [];
+      chrome.storage.local.set({ history });
+      updatePromptFilterOptions();
+      renderHistory();
+      if (!hasCurrentExplanation) {
+        hideCurrentExplanation();
+      }
     }
   }
 }
@@ -854,31 +923,52 @@ function fallbackCopyToClipboard(text) {
 }
 
 // 更新提示词过滤器选项
-function updatePromptFilterOptions() {
+async function updatePromptFilterOptions() {
   const promptFilter = document.getElementById("promptFilter");
   const currentValue = promptFilter.value;
 
-  // 获取所有唯一的提示词名称
-  const promptNames = [
-    ...new Set(history.map((item) => item.promptName).filter(Boolean)),
-  ];
+  try {
+    // 从数据库获取唯一的提示词名称
+    const promptNames = await window.dbManager.getUniquePromptNames();
 
-  // 清空现有选项
-  promptFilter.innerHTML = `<option value="">${i18nInstance.t(
-    "sidebar.allPrompts"
-  )}</option>`;
+    // 清空现有选项
+    promptFilter.innerHTML = `<option value="">${i18nInstance.t(
+      "sidebar.allPrompts"
+    )}</option>`;
 
-  // 添加提示词选项
-  promptNames.forEach((promptName) => {
-    const option = document.createElement("option");
-    option.value = promptName;
-    option.textContent = promptName;
-    promptFilter.appendChild(option);
-  });
+    // 添加提示词选项
+    promptNames.forEach((promptName) => {
+      const option = document.createElement("option");
+      option.value = promptName;
+      option.textContent = promptName;
+      promptFilter.appendChild(option);
+    });
 
-  // 恢复之前的选择（如果还存在）
-  if (currentValue && promptNames.includes(currentValue)) {
-    promptFilter.value = currentValue;
+    // 恢复之前的选择（如果还存在）
+    if (currentValue && promptNames.includes(currentValue)) {
+      promptFilter.value = currentValue;
+    }
+  } catch (error) {
+    console.error("获取提示词列表失败:", error);
+    // 降级：从内存中获取
+    const promptNames = [
+      ...new Set(history.map((item) => item.promptName).filter(Boolean)),
+    ];
+
+    promptFilter.innerHTML = `<option value="">${i18nInstance.t(
+      "sidebar.allPrompts"
+    )}</option>`;
+
+    promptNames.forEach((promptName) => {
+      const option = document.createElement("option");
+      option.value = promptName;
+      option.textContent = promptName;
+      promptFilter.appendChild(option);
+    });
+
+    if (currentValue && promptNames.includes(currentValue)) {
+      promptFilter.value = currentValue;
+    }
   }
 }
 
@@ -890,33 +980,48 @@ async function filterHistory() {
     .trim();
   const selectedPrompt = document.getElementById("promptFilter").value;
 
-  filteredHistory = history.filter((item) => {
-    // 提示词过滤
-    if (selectedPrompt && item.promptName !== selectedPrompt) {
-      return false;
+  try {
+    // 使用数据库搜索
+    if (searchQuery || selectedPrompt) {
+      filteredHistory = await window.dbManager.searchHistory(
+        searchQuery,
+        selectedPrompt
+      );
+    } else {
+      // 如果没有过滤条件，显示所有历史记录
+      filteredHistory = [...history];
     }
-
-    // 关键词搜索（在文本内容和解释中搜索）
-    if (searchQuery) {
-      const searchableText = (
-        (item.text || "") +
-        " " +
-        (item.explanation || "") +
-        " " +
-        (item.promptName || "") +
-        " " +
-        (item.sourceInfo || "") +
-        " " +
-        (item.pageTitle || "")
-      ).toLowerCase();
-
-      if (!searchableText.includes(searchQuery)) {
+  } catch (error) {
+    console.error("搜索历史记录失败:", error);
+    // 降级：使用内存过滤
+    filteredHistory = history.filter((item) => {
+      // 提示词过滤
+      if (selectedPrompt && item.promptName !== selectedPrompt) {
         return false;
       }
-    }
 
-    return true;
-  });
+      // 关键词搜索（在文本内容和解释中搜索）
+      if (searchQuery) {
+        const searchableText = (
+          (item.text || "") +
+          " " +
+          (item.explanation || "") +
+          " " +
+          (item.promptName || "") +
+          " " +
+          (item.sourceInfo || "") +
+          " " +
+          (item.pageTitle || "")
+        ).toLowerCase();
+
+        if (!searchableText.includes(searchQuery)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
 
   await renderHistory();
 }
