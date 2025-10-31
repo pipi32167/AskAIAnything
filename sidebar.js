@@ -84,7 +84,7 @@ function setupEventListeners() {
     .addEventListener("click", clearFilters);
 
   // 接收来自background和content script的消息
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message) => {
     if (message.action === "explainText") {
       handleExplainRequest(
         message.text,
@@ -119,7 +119,7 @@ async function handleExplainRequest(
   customPromptTemplate,
   promptName,
   sourceInfo,
-  contextType,
+  _contextType,
   pageUrl,
   pageTitle,
   promptConfig
@@ -569,7 +569,7 @@ async function renderHistory() {
   const markdownMode = settings.markdownMode || "compact";
   const modeClass = markdownMode === "relaxed" ? "relaxed-mode" : "";
 
-  filteredHistory.forEach((item, originalIndex) => {
+  filteredHistory.forEach((item) => {
     try {
       // 找到原始历史记录中的索引
       const index = history.findIndex((h) => h === item);
@@ -842,7 +842,8 @@ function fallbackCopyToClipboard(text) {
   textArea.select();
 
   try {
-    document.execCommand("copy");
+    // eslint-disable-next-line deprecation/deprecation
+    document.execCommand("copy"); // 降级方案，用于不支持 Clipboard API 的旧浏览器
     showCopySuccessMessage();
   } catch (err) {
     console.error("复制失败:", err);
