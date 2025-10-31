@@ -27,7 +27,9 @@
         "marked.min.js",
         "markdown-parser.js",
         "markdown.js",
-        "i18n.js"
+        "i18n.js",
+        "markdown-viewer.html",
+        "markdown-viewer.js"
       ],
       "matches": ["<all_urls>"]
     }

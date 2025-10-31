@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>测试 Markdown 查看器</title>
+</head>
+
+<body>
+  <h1>测试 Markdown 查看器</h1>
+  <button onclick="testViewer()">测试查看器</button>
+
+  <script>
+    function testViewer() {
+      // 模拟历史记录数据
+      const testData = {
+        title: "测试提示词",
+        timestamp: "2024-01-15 14:30:25",
+        source: "[测试页面标题](https://example.com)",
+        content: "## 选中文字\n\n这是一个测试的选中文字内容。\n\n包含多行文本和一些特殊字符：`code` **bold** *italic*\n\n## AI 解释\n\n这是一个AI生成的解释内容。\n\n- 列表项1\n- 列表项2\n\n> 这是一个引用块\n\n```javascript\nconsole.log('Hello World');\n```",
+        exportTime: new Date().toLocaleString("zh-CN")
+      };
+
+      // 编码数据并在新标签页中打开
+      const dataParam = encodeURIComponent(JSON.stringify(testData));
+      const viewerUrl = 'markdown-viewer.html?data=' + dataParam;
+
+      window.open(viewerUrl, '_blank');
+    }
+  </script>
+</body>
+
+</html>

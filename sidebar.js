@@ -367,7 +367,12 @@ async function callAI(text, customPromptTemplate, promptConfig) {
 }
 
 // 调用AI Vision API（支持图片）
-async function callAIWithImage(imageUrl, imageData, customPromptTemplate, promptConfig) {
+async function callAIWithImage(
+  imageUrl,
+  imageData,
+  customPromptTemplate,
+  promptConfig
+) {
   // 从storage获取API配置
   const config = await chrome.storage.sync.get([
     "apiKey",
@@ -441,10 +446,10 @@ async function callAIWithImage(imageUrl, imageData, customPromptTemplate, prompt
           type: "image_url",
           image_url: {
             url: imageData || imageUrl, // 优先使用base64数据，否则使用URL
-            detail: "auto"
-          }
-        }
-      ]
+            detail: "auto",
+          },
+        },
+      ],
     },
   ];
 
@@ -492,7 +497,10 @@ async function addToHistory(
     timestamp,
     promptName: promptName || "解释",
     sourceInfo:
-      sourceInfo || (contextType === "image" ? "图片分析" : text.substring(0, 30) + (text.length > 30 ? "..." : "")),
+      sourceInfo ||
+      (contextType === "image"
+        ? "图片分析"
+        : text.substring(0, 30) + (text.length > 30 ? "..." : "")),
     pageUrl: pageUrl || "",
     pageTitle: pageTitle || "",
     contextType: contextType,
@@ -619,12 +627,13 @@ async function renderHistory() {
         i18nInstance?.t("sidebar.copyMarkdown") || "复制 Markdown";
 
       // 根据内容类型显示不同的内容
-      const contentDisplay = item.contextType === "image"
-        ? `<div class="history-image" title="${item.text}">
+      const contentDisplay =
+        item.contextType === "image"
+          ? `<div class="history-image" title="${item.text}">
              <strong>图片：</strong><br>
              <img src="${item.text}" alt="History image" style="max-width: 100%; border-radius: 4px; margin-top: 8px;" onerror="this.style.display='none'">
            </div>`
-        : `<div class="history-text" title="${item.text}"><strong>文字：</strong>${item.text}</div>`;
+          : `<div class="history-text" title="${item.text}"><strong>文字：</strong>${item.text}</div>`;
 
       content.innerHTML = `
       <div class="history-timestamp">${item.timestamp}</div>
@@ -678,38 +687,38 @@ async function renderHistory() {
 
 // 将历史记录加载到主区域
 function loadHistoryToMain(item) {
-  currentText = item.text;
-  hasCurrentExplanation = true;
-  showCurrentExplanation();
-
-  // 更新侧边栏标题
-  const titleElement = document.getElementById("sidebarTitle");
-  if (titleElement) {
-    if (item.promptName && item.sourceInfo) {
-      titleElement.textContent = `${item.promptName} - ${item.sourceInfo}`;
-      titleElement.title = `${item.promptName} - ${item.sourceInfo}`;
-    } else {
-      const sidebarTitle =
-        i18nInstance?.t("sidebar.title") || "Ask Me Anything";
-      titleElement.textContent = sidebarTitle;
-    }
-  }
-
-  const selectedTextElement = document.getElementById("currentSelectedText");
-
-  // 根据内容类型显示不同的内容
-  if (item.contextType === "image") {
-    selectedTextElement.innerHTML = `<img src="${item.text}" alt="History image" style="max-width: 100%; border-radius: 4px; margin-top: 8px;" onerror="this.style.display='none'">`;
-    selectedTextElement.title = item.text;
+  // 生成markdown内容
+  let markdownContent = `## 选中文字\n\n`;
+  // 如果文字包含特殊字符，需要转义或用代码块包围
+  if (item.text.includes("\n") || item.text.includes("`")) {
+    markdownContent += `\`\`\`\n${item.text}\n\`\`\`\n\n`;
   } else {
-    selectedTextElement.textContent = item.text;
-    selectedTextElement.title = item.text;
+    markdownContent += `${item.text}\n\n`;
   }
 
-  displayExplanation(item.explanation);
+  // 添加AI回答
+  markdownContent += `## AI 解释\n\n${item.explanation}\n\n`;
 
-  // 滚动到顶部
-  document.querySelector(".sidebar-content").scrollTop = 0;
+  // 准备传递给新标签页的数据
+  const data = {
+    title: item.promptName || "AI分析",
+    timestamp: item.timestamp,
+    source:
+      item.pageUrl && item.pageTitle
+        ? `[${item.pageTitle}](${item.pageUrl})`
+        : item.pageUrl
+        ? `<${item.pageUrl}>`
+        : "",
+    content: markdownContent,
+    exportTime: new Date().toLocaleString("zh-CN"),
+  };
+
+  // 在新标签页中打开markdown查看器
+  const dataParam = encodeURIComponent(JSON.stringify(data));
+  const viewerUrl =
+    chrome.runtime.getURL("markdown-viewer.html") + "?data=" + dataParam;
+
+  chrome.tabs.create({ url: viewerUrl });
 }
 
 // 删除单个历史记录
