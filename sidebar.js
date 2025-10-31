@@ -137,6 +137,10 @@ async function handleExplainRequest(
     titleElement.textContent = i18nInstance.t("sidebar.title");
   }
 
+  // 恢复标签为"选中文字"
+  const selectedTextLabel = document.getElementById("selectedTextLabel");
+  selectedTextLabel.textContent = i18nInstance.t("sidebar.selectedText");
+
   const selectedTextElement = document.getElementById("currentSelectedText");
   selectedTextElement.textContent = text;
   selectedTextElement.title = text; // 添加title以显示完整内容
@@ -187,6 +191,10 @@ async function handleExplainImageRequest(
   } else {
     titleElement.textContent = i18nInstance.t("sidebar.title");
   }
+
+  // 将标签改为"选中图片"
+  const selectedTextLabel = document.getElementById("selectedTextLabel");
+  selectedTextLabel.textContent = "选中图片：";
 
   // 显示图片预览
   const selectedTextElement = document.getElementById("currentSelectedText");
@@ -686,13 +694,22 @@ async function renderHistory() {
 
 // 将历史记录加载到主区域
 function loadHistoryToMain(item) {
-  // 生成markdown内容
-  let markdownContent = `## 选中文字\n\n`;
-  // 如果文字包含特殊字符，需要转义或用代码块包围
-  if (item.text.includes("\n") || item.text.includes("`")) {
-    markdownContent += `\`\`\`\n${item.text}\n\`\`\`\n\n`;
+  // 生成markdown内容，根据类型显示不同的标题
+  let markdownContent = "";
+
+  if (item.contextType === "image") {
+    // 图片类型
+    markdownContent = `## 选中图片\n\n`;
+    markdownContent += `![图片](${item.text})\n\n`;
   } else {
-    markdownContent += `${item.text}\n\n`;
+    // 文字类型
+    markdownContent = `## 选中文字\n\n`;
+    // 如果文字包含特殊字符，需要转义或用代码块包围
+    if (item.text.includes("\n") || item.text.includes("`")) {
+      markdownContent += `\`\`\`\n${item.text}\n\`\`\`\n\n`;
+    } else {
+      markdownContent += `${item.text}\n\n`;
+    }
   }
 
   // 添加AI回答
@@ -710,6 +727,7 @@ function loadHistoryToMain(item) {
         : "",
     content: markdownContent,
     exportTime: new Date().toLocaleString("zh-CN"),
+    contextType: item.contextType || "text", // 传递内容类型
   };
 
   // 在新标签页中打开markdown查看器
@@ -760,13 +778,20 @@ function copyHistoryAsMarkdown(item) {
     markdownText += `**来源：** <${item.pageUrl}>\n\n`;
   }
 
-  // 添加选中的文字
-  markdownText += `## 选中文字\n\n`;
-  // 如果文字包含特殊字符，需要转义或用代码块包围
-  if (item.text.includes("\n") || item.text.includes("`")) {
-    markdownText += `\`\`\`\n${item.text}\n\`\`\`\n\n`;
+  // 添加选中的内容，根据类型显示不同的标题
+  if (item.contextType === "image") {
+    // 图片类型
+    markdownText += `## 选中图片\n\n`;
+    markdownText += `![图片](${item.text})\n\n`;
   } else {
-    markdownText += `${item.text}\n\n`;
+    // 文字类型
+    markdownText += `## 选中文字\n\n`;
+    // 如果文字包含特殊字符，需要转义或用代码块包围
+    if (item.text.includes("\n") || item.text.includes("`")) {
+      markdownText += `\`\`\`\n${item.text}\n\`\`\`\n\n`;
+    } else {
+      markdownText += `${item.text}\n\n`;
+    }
   }
 
   // 添加AI回答

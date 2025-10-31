@@ -49,7 +49,7 @@ chrome.runtime.onMessage.addListener((message) => {
           },
         });
       })
-      .catch((error) => {
+      .catch(() => {
         // 图片转换失败很常见（CORS限制），静默处理，直接使用URL
         // 发送数据给background，使用URL而非base64
         chrome.runtime.sendMessage({
@@ -238,7 +238,7 @@ function extractPageText() {
 function convertToMarkdown(element) {
   let markdown = "";
 
-  function processNode(node, depth = 0) {
+  function processNode(node) {
     if (!node) return "";
 
     // 文本节点
