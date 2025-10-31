@@ -17,9 +17,13 @@ if (dataParam) {
         "时间：" + data.timestamp;
     }
 
-    // 设置来源
+    // 设置来源（解析 Markdown 链接）
     if (data.source) {
-      document.getElementById("source").textContent = "来源：" + data.source;
+      const sourceElement = document.getElementById("source");
+      // 解析 Markdown 并移除外层的 <p> 标签以保持内联显示
+      const parsedSource = markdownParser.parse(data.source);
+      const cleanSource = parsedSource.replace(/^<p>|<\/p>$/g, "");
+      sourceElement.innerHTML = "来源：" + cleanSource;
     }
 
     // 渲染markdown内容
