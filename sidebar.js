@@ -740,11 +740,27 @@ async function loadHistoryToMain(item) {
   } else {
     // 文字类型
     markdownContent = `## 选中文字\n\n`;
+
+    // 限制文字长度为1000字符
+    const maxLength = 1000;
+    let displayText = item.text;
+    let isTruncated = false;
+
+    if (displayText.length > maxLength) {
+      displayText = displayText.substring(0, maxLength);
+      isTruncated = true;
+    }
+
     // 如果文字包含特殊字符，需要转义或用代码块包围
-    if (item.text.includes("\n") || item.text.includes("`")) {
-      markdownContent += `\`\`\`\n${item.text}\n\`\`\`\n\n`;
+    if (displayText.includes("\n") || displayText.includes("`")) {
+      markdownContent += `\`\`\`\n${displayText}\n\`\`\`\n\n`;
     } else {
-      markdownContent += `${item.text}\n\n`;
+      markdownContent += `${displayText}\n\n`;
+    }
+
+    // 如果被截断，添加提示
+    if (isTruncated) {
+      markdownContent += `*（内容已截断，仅显示前 ${maxLength} 字符）*\n\n`;
     }
   }
 
@@ -855,11 +871,27 @@ function copyHistoryAsMarkdown(item) {
   } else {
     // 文字类型
     markdownText += `## 选中文字\n\n`;
+
+    // 限制文字长度为1000字符
+    const maxLength = 1000;
+    let displayText = item.text;
+    let isTruncated = false;
+
+    if (displayText.length > maxLength) {
+      displayText = displayText.substring(0, maxLength);
+      isTruncated = true;
+    }
+
     // 如果文字包含特殊字符，需要转义或用代码块包围
-    if (item.text.includes("\n") || item.text.includes("`")) {
-      markdownText += `\`\`\`\n${item.text}\n\`\`\`\n\n`;
+    if (displayText.includes("\n") || displayText.includes("`")) {
+      markdownText += `\`\`\`\n${displayText}\n\`\`\`\n\n`;
     } else {
-      markdownText += `${item.text}\n\n`;
+      markdownText += `${displayText}\n\n`;
+    }
+
+    // 如果被截断，添加提示
+    if (isTruncated) {
+      markdownText += `*（内容已截断，仅显示前 ${maxLength} 字符）*\n\n`;
     }
   }
 
